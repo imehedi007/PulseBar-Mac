@@ -62,7 +62,7 @@ CPU/RAM overhead has not been profiled. Measure a Release build outside the Xcod
 
 ## Tests
 
-The latest local run passed **11 tests**: 10 Swift Testing tests and one UI automation test. Coverage includes CPU deltas, first samples, resets, memory calculations, network rates, multiple interfaces, zero traffic, unit formatting, threshold transitions, independent colors, settings persistence and monitoring lifecycle. The UI test opens the popover, pauses/resumes monitoring and opens settings.
+The latest local run passed **13 tests**: 12 Swift Testing tests and one UI automation test. Coverage includes CPU deltas, first samples, resets, memory calculations, network rates, multiple interfaces, zero traffic, unit formatting, threshold transitions, independent colors, disabled metrics formatting, threshold normalization bounds, settings persistence and monitoring lifecycle. The UI test opens the popover, pauses/resumes monitoring and opens settings.
 
 Run the suite using **Product > Test (⌘U)**. Tests do not enable launch at login or alter your saved monitoring preferences.
 

@@ -93,6 +93,27 @@ struct PulseBarTests {
         #expect(cpu != ram)
     }
 
+    @MainActor @Test func titleWithDisabledMetrics() {
+        var preferences = Preferences()
+        preferences.cpuEnabled = false
+        preferences.memoryEnabled = false
+        preferences.networkEnabled = false
+        let title = MenuBarFormatter.title(snapshot: MonitoringSnapshot(), preferences: preferences, running: true)
+        #expect(title.string == "↓ off ↑ off | CPU off | RAM off")
+    }
+
+    @Test func thresholdNormalizationBounds() {
+        var t = Thresholds(warning: 100, critical: 10)
+        t.normalize()
+        #expect(t.warning == 99)
+        #expect(t.critical == 100)
+
+        var t2 = Thresholds(warning: -5, critical: -10)
+        t2.normalize()
+        #expect(t2.warning == 1)
+        #expect(t2.critical == 2)
+    }
+
     @MainActor @Test func settingsPersistenceAndValidation() throws {
         let name = "PulseBarTests." + UUID().uuidString
         let defaults = try #require(UserDefaults(suiteName: name))
