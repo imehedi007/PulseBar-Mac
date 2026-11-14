@@ -34,11 +34,13 @@ enum MenuBarFormatter {
 
     static func speed(_ bytes: Double?) -> String {
         guard let bytes, bytes.isFinite, bytes >= 0 else { return "—" }
-        switch bytes {
-        case 1_000_000_000...: return String(format: "%.1f GB/s", bytes / 1_000_000_000)
-        case 1_000_000...: return String(format: "%.1f MB/s", bytes / 1_000_000)
-        case 1_000...: return String(format: "%.1f KB/s", bytes / 1_000)
-        default: return String(format: "%.0f B/s", bytes)
+        let bits = bytes * 8
+        guard bits.isFinite else { return "—" }
+        switch bits {
+        case 1_000_000_000...: return String(format: "%.1f Gbps", bits / 1_000_000_000)
+        case 1_000_000...: return String(format: "%.1f Mbps", bits / 1_000_000)
+        case 1_000...: return String(format: "%.1f Kbps", bits / 1_000)
+        default: return String(format: "%.0f bps", bits)
         }
     }
 
