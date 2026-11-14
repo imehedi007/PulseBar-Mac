@@ -9,7 +9,7 @@
 ## Features
 
 - One compact monospaced menu-bar indicator; no Dock icon or launch window.
-- Independent CPU and RAM warning colors, with configurable thresholds.
+- Configurable CPU utilization thresholds and independent RAM colors driven by macOS memory pressure.
 - Native popover with detailed readings, pause/resume, settings and quit.
 - Configurable 500 ms, 1 s, 2 s and 5 s refresh intervals.
 - Persistent preferences, automatic monitoring and optional launch at login.
@@ -34,7 +34,7 @@ For installation, build/archive Release and copy PulseBar.app into /Applications
 
 ## Usage
 
-Click the single menu-bar indicator for details, pause/resume, settings and quit. All three monitors default on with a 500 ms interval and automatic start. Choose 500 ms, 1 s, 2 s or 5 s; CPU and RAM each have independent warning (75%) and critical (90%) thresholds. Settings persist in UserDefaults. Restore Defaults also disables launch at login. Automatic start controls the next launch; pause is session-only. Disabled or unavailable metrics display an explicit placeholder. The first CPU/network reading needs two samples.
+Click the single menu-bar indicator for details, pause/resume, settings and quit. All three monitors default on with a 500 ms interval and automatic start. Choose 500 ms, 1 s, 2 s or 5 s; CPU retains configurable warning (75%) and critical (90%) thresholds. RAM percentage is unchanged, but its color follows macOS memory pressure: Normal = green, Warning = yellow, Critical = red, Unknown = grey. The popover shows pressure separately from RAM utilization. Old saved RAM thresholds remain readable for preference compatibility but have no effect and are no longer offered in settings. Settings persist in UserDefaults. Restore Defaults also disables launch at login. Automatic start controls the next launch; pause is session-only. Disabled or unavailable metrics display an explicit placeholder. The first CPU/network reading needs two samples.
 
 ## Measurement definitions
 
@@ -45,6 +45,10 @@ Click the single menu-bar indicator for details, pause/resume, settings and quit
 Network display converts the monitor's bytes per second to bits per second by multiplying by 8. Units are decimal: bps, Kbps (1,000 bps), Mbps (1,000,000 bps) and Gbps (1,000,000,000 bps). Kbps, Mbps and Gbps display one decimal place; bps displays whole bits per second. For example, 1 MB/s displays as 8.0 Mbps, 5 MB/s as 40.0 Mbps, 10 MB/s as 80.0 Mbps, and 512 B/s as 4.1 Kbps. Byte-counter calculations and the default 500 ms sampling interval are unchanged.
 
 ## Architecture and resource use
+
+Memory pressure uses Apple's public `DispatchSource.makeMemoryPressureSource` with normal, warning and critical events on the existing sampling queue. It introduces no polling timer. Dispatch reports changes and does not guarantee an initial state: pressure is Unknown until a notification arrives, potentially indefinitely on a stable system. High utilization never substitutes for an OS pressure event. For example, RAM 92% with Normal pressure is green; RAM 60% with Critical pressure is red. Coalesced event flags use the most severe reported state.
+
+Pause, sleep, memory-disable and shutdown cancel the pressure source. Resume, wake, re-enable and sampling reconfiguration start a fresh subscription at Unknown. Generation checks reject callbacks from older subscriptions; periodic metric samples retain the latest pressure state. Pressure events update the existing snapshot immediately. This is a categorical OS notification, not a reproduction of Activity Monitor's pressure graph.
 
 | File | Responsibility |
 | --- | --- |
@@ -62,7 +66,16 @@ CPU/RAM overhead has not been profiled. Measure a Release build outside the Xcod
 
 ## Tests
 
-The latest local run passed **13 tests**: 12 Swift Testing tests and one UI automation test. Coverage includes CPU deltas, first samples, resets, memory calculations, network rates, multiple interfaces, zero traffic, unit formatting, threshold transitions, independent colors, disabled metrics formatting, threshold normalization bounds, settings persistence and monitoring lifecycle. The UI test opens the popover, pauses/resumes monitoring and opens settings.
+The latest local run passed **17 tests**: 16 Swift Testing tests and one UI automation test. Coverage includes CPU deltas, first samples, resets, memory calculations, network rates, multiple interfaces, zero traffic, unit formatting, threshold transitions, independent colors, disabled metrics formatting, threshold normalization bounds, settings persistence and monitoring lifecycle. Focused pressure tests cover all event states, coalesced flags, transitions in light/dark appearances, 92% utilization with Normal pressure, 60% with Critical pressure, ignored legacy RAM thresholds, inactive grey rendering, and pause/sleep/wake/re-enable resets. The UI test checks the pressure-status row, pauses/resumes monitoring and opens settings.
+
+### RAM pressure QA — 2026-11-14
+
+- Debug build with test targets: passed.
+- Full test suite: 17 passed, 0 failed, 0 skipped.
+- Release build: passed on Apple Silicon using `xcodebuild -project PulseBar.xcodeproj -scheme PulseBar -configuration Release -destination 'platform=macOS' -derivedDataPath /tmp/PulseBar-Release-QA build`.
+- The first Release attempt was blocked by the workspace sandbox's restriction on Swift macro compiler processes; the same build succeeded outside that sandbox. Xcode emitted only an App Intents metadata-extraction notice because this app does not use App Intents.
+- Actual system-wide warning/critical pressure was not induced. Event mappings are tested with synthetic Dispatch event flags; lifecycle tests exercise real source creation/cancellation and the service's sleep/wake methods. Physical sleep/wake and OS-driven pressure transitions remain manual QA checks.
+- Manual follow-up: on a test Mac, compare the popover's pressure state with OS-reported transitions, verify recovery to green after a Normal notification, and confirm pause/disable/sleep clears stale pressure. Do not expect green before the first notification.
 
 Run the suite using **Product > Test (⌘U)**. Tests do not enable launch at login or alter your saved monitoring preferences.
 

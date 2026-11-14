@@ -11,6 +11,9 @@ final class PulseBarUITests: XCTestCase {
         status.click()
         let pause = app.buttons["PauseResume"]
         XCTAssertTrue(pause.waitForExistence(timeout: 5))
+        let pressure = app.staticTexts["MemoryPressureStatus"]
+        XCTAssertTrue(pressure.waitForExistence(timeout: 5))
+        XCTAssertTrue(["Unknown", "Normal", "Warning", "Critical", "Disabled"].contains(pressure.value as? String ?? pressure.label), pressure.debugDescription)
         let original = pause.label
         pause.click()
         XCTAssertTrue(pause.wait(for: \.label, toEqual: original == "Pause" ? "Resume" : "Pause", timeout: 5))

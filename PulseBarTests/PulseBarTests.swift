@@ -160,6 +160,90 @@ struct PulseBarTests {
         service.stop()
     }
 
+    @Test func memoryPressureEvents() {
+        #expect(MemoryPressure(events: []) == .unknown)
+        #expect(MemoryPressure(events: .normal) == .normal)
+        #expect(MemoryPressure(events: .warning) == .warning)
+        #expect(MemoryPressure(events: .critical) == .critical)
+        #expect(MemoryPressure(events: [.normal, .warning]) == .warning)
+        #expect(MemoryPressure(events: [.normal, .warning, .critical]) == .critical)
+        #expect(MonitoringSnapshot().memoryPressure == .unknown)
+    }
+
+    @MainActor @Test func memoryPressureColorTransitions() throws {
+        let states: [MemoryPressure] = [.unknown, .normal, .warning, .critical, .warning, .normal]
+        for state in states {
+            for used: UInt64 in [60, 92] {
+                var preferences = Preferences()
+                // Legacy RAM thresholds must have no influence on pressure colors.
+                preferences.memoryThresholds = Thresholds(warning: 1, critical: 2)
+                let snapshot = MonitoringSnapshot(cpu: 95, memory: .init(total: 100, used: used),
+                                                  memoryPressure: state)
+                let title = MenuBarFormatter.title(snapshot: snapshot, preferences: preferences, running: true)
+                let ramRange = (title.string as NSString).range(of: "RAM")
+                let cpuRange = (title.string as NSString).range(of: "CPU")
+                let ram = try #require(title.attribute(.foregroundColor, at: ramRange.location, effectiveRange: nil) as? NSColor)
+                let cpu = try #require(title.attribute(.foregroundColor, at: cpuRange.location, effectiveRange: nil) as? NSColor)
+                let expected: NSColor
+                switch state {
+                case .unknown: expected = .systemGray
+                case .normal: expected = MetricLevel.normal.color
+                case .warning: expected = .systemYellow
+                case .critical: expected = .systemRed
+                }
+                for name in [NSAppearance.Name.aqua, .darkAqua] {
+                    let appearance = try #require(NSAppearance(named: name))
+                    appearance.performAsCurrentDrawingAppearance {
+                        #expect(ram.usingColorSpace(.deviceRGB) == expected.usingColorSpace(.deviceRGB))
+                    }
+                }
+                #expect(cpu == .systemRed)
+                #expect(title.string.contains("RAM \(used)%"))
+            }
+        }
+    }
+
+    @MainActor @Test func inactiveMemoryPressureIsGrey() throws {
+        var preferences = Preferences()
+        let snapshot = MonitoringSnapshot(memory: .init(total: 100, used: 92), memoryPressure: .critical)
+        for running in [true, false] {
+            preferences.memoryEnabled = !running
+            let title = MenuBarFormatter.title(snapshot: snapshot, preferences: preferences, running: running)
+            let range = (title.string as NSString).range(of: "RAM")
+            let color = try #require(title.attribute(.foregroundColor, at: range.location, effectiveRange: nil) as? NSColor)
+            #expect(color == .systemGray)
+        }
+    }
+
+    @MainActor @Test func memoryPressureLifecycle() async throws {
+        var preferences = Preferences()
+        let service = MonitoringService(preferences: preferences)
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.restart()
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.sleep()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.wake()
+        #expect(service.snapshot.memoryPressure == .unknown)
+        preferences.memoryEnabled = false
+        service.configure(preferences)
+        try await Task.sleep(for: .milliseconds(600))
+        #expect(service.snapshot.memoryPressure == .unknown)
+        #expect(service.snapshot.memory == nil)
+        preferences.memoryEnabled = true
+        service.configure(preferences)
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.toggle()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.toggle()
+        #expect(service.snapshot.memoryPressure == .unknown)
+        service.stop()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(service.snapshot == MonitoringSnapshot())
+    }
+
     @Test func nativeMemorySample() throws {
         let memory = try #require(MemoryMonitor().sample())
         #expect(memory.total > 0)

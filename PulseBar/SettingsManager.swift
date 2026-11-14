@@ -18,6 +18,7 @@ struct Preferences: Codable, Equatable, Sendable {
     var networkEnabled = true
     var interval: Double = 0.5
     var cpuThresholds = Thresholds()
+    // Retained only for compatibility with saved preferences; RAM colors use OS pressure.
     var memoryThresholds = Thresholds()
     var autoStart = true
 

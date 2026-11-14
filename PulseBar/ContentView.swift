@@ -47,7 +47,13 @@ private struct MetricsView: View {
             GridRow {
                 Text("RAM")
                 Text(preferences.memoryEnabled ? MenuBarFormatter.percent(snapshot.memory?.percentage) : "Disabled")
-                    .foregroundStyle(color(snapshot.memory?.percentage, thresholds: preferences.memoryThresholds))
+                    .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(preferences.memoryEnabled ? snapshot.memoryPressure : .unknown)))
+            }
+            GridRow {
+                Text("Memory pressure")
+                Text(preferences.memoryEnabled ? snapshot.memoryPressure.rawValue : "Disabled")
+                    .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(preferences.memoryEnabled ? snapshot.memoryPressure : .unknown)))
+                    .accessibilityIdentifier("MemoryPressureStatus")
             }
             GridRow {
                 Text("Used / Total").foregroundStyle(.secondary)
@@ -99,7 +105,8 @@ struct SettingsView: View {
                 Text("5 s").tag(5.0)
             }
             ThresholdEditor(title: "CPU", thresholds: binding(\.cpuThresholds))
-            ThresholdEditor(title: "RAM", thresholds: binding(\.memoryThresholds))
+            Text("RAM colors follow macOS memory pressure, not utilization thresholds.")
+                .font(.caption).foregroundStyle(.secondary)
             Toggle("Start monitoring automatically", isOn: binding(\.autoStart))
             Toggle("Launch at login", isOn: Binding(get: { settings.loginEnabled }, set: { settings.setLoginEnabled($0) }))
                 .disabled(settings.loginBusy)

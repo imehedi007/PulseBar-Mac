@@ -58,6 +58,21 @@ struct MemoryReading: Equatable, Sendable {
     }
 }
 
+enum MemoryPressure: String, Equatable, Sendable {
+    case unknown = "Unknown"
+    case normal = "Normal"
+    case warning = "Warning"
+    case critical = "Critical"
+
+    init(events: DispatchSource.MemoryPressureEvent) {
+        // Coalesced notifications may contain multiple flags; prefer the most severe.
+        if events.contains(.critical) { self = .critical }
+        else if events.contains(.warning) { self = .warning }
+        else if events.contains(.normal) { self = .normal }
+        else { self = .unknown }
+    }
+}
+
 struct MemoryMonitor {
     func sample() -> MemoryReading? {
         var info = vm_statistics64()

@@ -27,6 +27,15 @@ enum MetricLevel: Equatable {
 }
 
 enum MenuBarFormatter {
+    static func memoryColor(_ pressure: MemoryPressure) -> NSColor {
+        switch pressure {
+        case .normal: return MetricLevel.normal.color
+        case .warning: return .systemYellow
+        case .critical: return .systemRed
+        case .unknown: return .systemGray
+        }
+    }
+
     static func percent(_ value: Double?) -> String {
         guard let value, value.isFinite else { return "—" }
         return String(format: "%.0f%%", min(100, max(0, value)))
@@ -63,7 +72,10 @@ enum MenuBarFormatter {
         append("↓ " + (preferences.networkEnabled ? speed(snapshot.network?.download) : "off"))
         append(" ↑ " + (preferences.networkEnabled ? speed(snapshot.network?.upload) : "off"))
         metric("CPU", value: snapshot.cpu, enabled: preferences.cpuEnabled, thresholds: preferences.cpuThresholds)
-        metric("RAM", value: snapshot.memory?.percentage, enabled: preferences.memoryEnabled, thresholds: preferences.memoryThresholds)
+        append(" | ")
+        let ramText = preferences.memoryEnabled ? percent(snapshot.memory?.percentage) : "off"
+        let pressure = running && preferences.memoryEnabled ? snapshot.memoryPressure : .unknown
+        append("RAM \(ramText)", color: memoryColor(pressure))
         return result
     }
 }
