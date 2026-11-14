@@ -1,19 +1,135 @@
-//
-//  PulseBarTests.swift
-//  PulseBarTests
-//
-//  Created by Imran Mehedi on 14/11/26.
-//
-
+import Foundation
+import AppKit
 import Testing
 @testable import PulseBar
 
 struct PulseBarTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+    @Test func cpuDeltasAndFirstSample() {
+        let first = CPUTicks(user: 10, system: 20, idle: 60, nice: 10)
+        let next = CPUTicks(user: 20, system: 40, idle: 120, nice: 20)
+        #expect(CPUTicks.utilization(previous: nil, current: first) == nil)
+        #expect(CPUTicks.utilization(previous: first, current: next) == 40)
+        #expect(CPUTicks.utilization(previous: next, current: first) == nil)
+        #expect(CPUTicks.utilization(previous: first, current: first) == 0)
     }
 
+    @Test func memoryCalculation() {
+        let memory = MemoryReading.calculate(total: 1000, pageSize: 10, active: 20,
+                                              inactive: 10, wired: 20, compressed: 10, purgeable: 5)
+        #expect(memory.used == 550)
+        #expect(memory.available == 450)
+        #expect(abs(memory.percentage - 55) < 0.0001)
+        #expect(MemoryReading.calculate(total: 100, pageSize: 10, active: 100,
+                                        inactive: 0, wired: 0, compressed: 0, purgeable: 0).used == 100)
+        #expect(MemoryReading.calculate(total: 0, pageSize: 10, active: 0,
+                                        inactive: 0, wired: 0, compressed: 0, purgeable: 9).percentage == 0)
+    }
+
+    @Test func networkDeltasAndResets() {
+        var calculator = NetworkCalculator()
+        func bytes(_ received: UInt64, _ sent: UInt64, _ index: UInt32 = 1) -> InterfaceBytes {
+            InterfaceBytes(received: received, sent: sent, index: index)
+        }
+        #expect(calculator.sample(["en0": bytes(100, 200)], time: 1) == nil)
+        #expect(calculator.sample(["en0": bytes(600, 1200)], time: 1.5) == NetworkRate(download: 1000, upload: 2000))
+        #expect(calculator.sample(["en0": bytes(600, 1200)], time: 2) == NetworkRate())
+        #expect(calculator.sample(["en0": bytes(1, 2)], time: 3) == NetworkRate())
+        #expect(calculator.sample(["en1": bytes(90000, 90000)], time: 4) == NetworkRate())
+        #expect(calculator.sample(["en1": bytes(90001, 90001, 2)], time: 5) == NetworkRate())
+        #expect(calculator.sample([:], time: 5) == nil)
+        #expect(calculator.sample([:], time: 6) == NetworkRate())
+    }
+
+    @Test func multipleInterfacesAndDirectionReset() {
+        var calculator = NetworkCalculator()
+        _ = calculator.sample(["en0": .init(received: 100, sent: 100, index: 1),
+                               "en1": .init(received: 100, sent: 100, index: 2)], time: 1)
+        let value = calculator.sample(["en0": .init(received: 0, sent: 200, index: 1),
+                                       "en1": .init(received: 200, sent: 200, index: 2)], time: 2)
+        #expect(value == NetworkRate(download: 100, upload: 200))
+    }
+
+    @Test func units() {
+        #expect(MenuBarFormatter.speed(nil) == "—")
+        #expect(MenuBarFormatter.speed(0) == "0 B/s")
+        #expect(MenuBarFormatter.speed(1000) == "1.0 KB/s")
+        #expect(MenuBarFormatter.speed(12_400_000) == "12.4 MB/s")
+        #expect(MenuBarFormatter.speed(1_000_000_000) == "1.0 GB/s")
+        #expect(MenuBarFormatter.speed(.infinity) == "—")
+        #expect(MenuBarFormatter.percent(90) == "90%")
+        #expect(MenuBarFormatter.gigabytes(16_000_000_000) == "16.0")
+    }
+
+    @Test func thresholds() {
+        let thresholds = Thresholds()
+        #expect(MetricLevel.level(74.99, thresholds: thresholds) == .normal)
+        #expect(MetricLevel.level(75, thresholds: thresholds) == .warning)
+        #expect(MetricLevel.level(89.99, thresholds: thresholds) == .warning)
+        #expect(MetricLevel.level(90, thresholds: thresholds) == .critical)
+        #expect(MetricLevel.level(100, thresholds: thresholds) == .critical)
+        #expect(MetricLevel.level(80, thresholds: Thresholds(warning: 50, critical: 80)) == .critical)
+    }
+
+    @MainActor @Test func independentColors() throws {
+        let title = MenuBarFormatter.title(snapshot: .init(cpu: 95, memory: .init(total: 100, used: 20)),
+                                            preferences: Preferences(), running: true)
+        let cpuRange = (title.string as NSString).range(of: "CPU")
+        let ramRange = (title.string as NSString).range(of: "RAM")
+        let cpu = try #require(title.attribute(.foregroundColor, at: cpuRange.location, effectiveRange: nil) as? NSColor)
+        let ram = try #require(title.attribute(.foregroundColor, at: ramRange.location, effectiveRange: nil) as? NSColor)
+        #expect(cpu == NSColor.systemRed)
+        #expect(cpu != ram)
+    }
+
+    @MainActor @Test func settingsPersistenceAndValidation() throws {
+        let name = "PulseBarTests." + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let settings = SettingsManager(defaults: defaults)
+        #expect(settings.preferences == Preferences())
+        settings.update {
+            $0.interval = 2
+            $0.cpuEnabled = false
+            $0.autoStart = false
+            $0.cpuThresholds = Thresholds(warning: 60, critical: 85)
+        }
+        let restored = SettingsManager(defaults: defaults)
+        #expect(restored.preferences == settings.preferences)
+        restored.update {
+            $0.interval = -1
+            $0.memoryThresholds = Thresholds(warning: 200, critical: -1)
+        }
+        #expect(restored.preferences.interval == 0.5)
+        #expect(restored.preferences.memoryThresholds == Thresholds(warning: 99, critical: 100))
+        restored.restoreDefaults()
+        #expect(SettingsManager(defaults: defaults).preferences == Preferences())
+    }
+
+    @MainActor @Test func monitoringLifecycle() async throws {
+        var preferences = Preferences()
+        preferences.interval = 0.5
+        let service = MonitoringService(preferences: preferences)
+        service.restart()
+        try await Task.sleep(for: .seconds(1.2))
+        #expect(service.isRunning)
+        #expect(service.snapshot.memory != nil)
+        service.toggle()
+        #expect(!service.isRunning)
+        #expect(service.status == "Paused")
+        try await Task.sleep(for: .milliseconds(600))
+        #expect(service.snapshot == MonitoringSnapshot())
+        service.toggle()
+        #expect(service.isRunning)
+        service.sleep()
+        #expect(service.status == "Sleeping")
+        service.wake()
+        #expect(!service.isSleeping)
+        service.stop()
+    }
+
+    @Test func nativeMemorySample() throws {
+        let memory = try #require(MemoryMonitor().sample())
+        #expect(memory.total > 0)
+        #expect(memory.used <= memory.total)
+    }
 }
