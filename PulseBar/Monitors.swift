@@ -44,6 +44,11 @@ struct MemoryReading: Equatable, Sendable {
     let total: UInt64
     let used: UInt64
     var available: UInt64 { total - used }
+    // A numerical VM headroom estimate, never an OS memory-pressure classification.
+    // Uses the existing available estimate; inactive caches remain counted as used.
+    var estimatedHeadroomPercentage: Double? {
+        total > 0 ? Double(available) / Double(total) * 100 : nil
+    }
     var percentage: Double { total > 0 ? Double(used) / Double(total) * 100 : 0 }
 
     // Resident active + inactive + wired + compressed pages, less reclaimable

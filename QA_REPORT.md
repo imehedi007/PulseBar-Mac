@@ -1,5 +1,65 @@
 # PulseBar — Engineering QA & Performance Audit Report
 
+## Current verification — November 14, 2026
+
+This section supersedes the historical audit below. Historical measurements are retained as prior reported results, not newly verified claims.
+
+### Revision and corrective change
+
+Local HEAD, origin/main and the remote main ref were verified at `4adc05f5de438633500c6b541643f7c63cc15cce` before this update. The correction is uncommitted; no push was performed. The existing pressure implementation passed its 17-test baseline (16 unit tests + one UI test) before edits.
+
+No documented public initial system-pressure snapshot was identified. Apple's Dispatch memory-pressure source reports changes; source data is only valid in the event handler. Undocumented `kern.memorystatus_vm_pressure_level` and kernel-only interfaces are not used in the app. References: [DispatchSourceMemoryPressure](https://developer.apple.com/documentation/dispatch/dispatchsourcememorypressure), [dispatch_source_get_data](https://developer.apple.com/documentation/dispatch/dispatch_source_get_data).
+
+The popover now explicitly separates **OS Reported** pressure from **Estimated headroom**. The latter is a numerical percentage, `100 × available / total`, from the existing public Mach VM reading. It is not an OS classification and never affects RAM colour. Inactive caches remain counted as used in the unchanged RAM formula, so low estimated headroom does not establish system stress. Unknown OS pressure remains grey indefinitely if no event arrives. The estimate is available from the first successful sample and adds no polling or system calls.
+
+Existing source cancellation and generation checks handle pause/sleep/disable and restart. A fresh subscription starts Unknown; a fresh VM sample repopulates headroom. CPU, network/Mbps, RAM used/available calculations, 500 ms timer, icon and project configuration are unchanged.
+
+### Automated verification
+
+| Check | Actual result |
+| --- | --- |
+| Debug build including tests | Passed, no build errors |
+| Full suite after correction | 19 passed: 18 Swift Testing + 1 UI; 0 failed, skipped or not run |
+| New unit coverage | Initial unavailable estimate, first VM sample with Unknown OS state, independence through normal/warning/critical/normal, zero-total and 0–100% bounds |
+| Existing pressure coverage | Empty/coalesced events, grey/green/yellow/red, 92% RAM + Normal green, 60% RAM + Critical red, light/dark colours, lifecycle resets |
+| UI automation | Both OS Reported and Estimated headroom rows, popover, pause/resume and settings passed |
+| Release build after correction | Passed with ENABLE_CODE_COVERAGE=NO; log /tmp/PulseBar-Headroom-Release.log |
+
+Test result: `Test-PulseBar-2026.11.14_22-46-04-+0600.xcresult` in the Xcode ActionArtifacts RunAllTests directory. Tests inject event flags; this is not proof of naturally occurring OS transitions. Lifecycle tests call service sleep/wake methods, not physical hardware sleep.
+
+### Preserved measurements collected before this correction
+
+No benchmarks were repeated for this correction. The earlier audit measured commit `4adc05f` on MacBookPro17,1, 8 GB RAM, macOS 27.2, Xcode 27.2, standalone optimized arm64 Release outside the debugger, 500 ms sampling. The helper collected 291 samples over 291.131 seconds before being stopped. CPU comes from `proc_pid_rusage` Mach ticks converted using the measured timebase 125/3; 100% means one logical core. Memory values below are decimal MB of physical footprint, not RSS.
+
+| Metric | Whole recorded interval | After first 60 seconds (230.876 s) |
+| --- | --- | --- |
+| Average CPU | 1.671% | 1.556% |
+| Peak sampled interval CPU | 20.929% | 4.258% |
+| Average footprint | 35.599 MB | 36.381 MB |
+| Peak footprint | 55.510 MB | 37.914 MB |
+| Start → end footprint | 19.613 → 36.373 MB | 36.275 → 36.373 MB |
+| Footprint growth | 16.761 MB | 0.098 MB |
+| Interrupt wakeups | 1,487 (5.108/s) | 1,046 (4.531/s) |
+| Package-idle wakeups | 30 (0.103/s) | 27 (0.117/s) |
+
+The later footprint plateau does not establish long-term leak freedom. Wakeup counters are kernel categories, not a count of every application timer firing. Historical baseline CPU 0.8–1.0% and footprint 17.9 MB were lower, but conditions are not controlled; this is not an A/B attribution to memory-pressure handling. The separate pressure observer recorded no events, so per-event handling overhead was not measurable. A separate 20-second Time Profiler capture completed before this interval; its overhead is excluded from the table. No further profiling is required for this correction.
+
+Preserved local artifacts: `/tmp/pulsebar-final-idle.csv`, `/tmp/pulsebar-final-idle-events.log`, `/tmp/pulsebar-qa-summary.awk`, `/tmp/PulseBar-Final-TimeProfiler.trace`. Temporary artifacts may be removed by macOS; the measurements above preserve their summary.
+
+### Manual verification and release limitations
+
+- Actual Activity Monitor comparison, naturally occurring warning/critical/recovery transitions, and physical sleep/wake are **unverified**. Accessibility scripting was unavailable during the preceding audit. No artificial memory exhaustion was attempted.
+- Initial Unknown is intentional; the numerical estimate supplies context without pretending macOS reported a state.
+- Icon asset sizes and compiled AppIcon were verified in the preceding audit. Release used Apple Development signing, hardened runtime and sandboxing; strict signature verification passed for that preceding build. No distribution notarization ticket was present. This remains a development build, not a notarized distribution release.
+- Intel, launch-at-login approval, physical network migration and extended leak behaviour remain unverified.
+- Files changed: `Monitors.swift` (derived estimate only), `ContentView.swift` (distinct labels/estimate), `PulseBarTests.swift` (two focused tests), `PulseBarUITests.swift` (label assertions), `README.md` and this report. No monitoring-service, formatter, CPU/network or project changes.
+
+Assessment: automated verification supports local use of the targeted correction. OS-transition/manual checks and distribution signing/notarization remain release follow-up work.
+
+---
+
+## Historical audit (retained; not current verification)
+
 **Date:** November 14, 2026  
 **Auditor:** Antigravity Senior macOS Systems Engineer & QA Specialist  
 **Target Application:** PulseBar (macOS 14.0+)  

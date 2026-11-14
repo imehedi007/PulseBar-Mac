@@ -244,6 +244,32 @@ struct PulseBarTests {
         #expect(service.snapshot == MonitoringSnapshot())
     }
 
+    @Test func estimatedHeadroomInitialStateAndTransitions() {
+        var snapshot = MonitoringSnapshot()
+        #expect(snapshot.memoryPressure == .unknown)
+        #expect(snapshot.memory?.estimatedHeadroomPercentage == nil)
+        snapshot.memory = .calculate(total: 1000, pageSize: 10, active: 42,
+                                    inactive: 20, wired: 20, compressed: 10, purgeable: 0)
+        #expect(snapshot.memory?.percentage == 92)
+        #expect(snapshot.memory?.estimatedHeadroomPercentage == 8)
+        #expect(snapshot.memoryPressure == .unknown)
+        for event: DispatchSource.MemoryPressureEvent in [.normal, .warning, .critical, .normal] {
+            snapshot.memoryPressure = MemoryPressure(events: event)
+            #expect(snapshot.memory?.estimatedHeadroomPercentage == 8)
+            #expect(snapshot.memoryPressure == MemoryPressure(events: event))
+        }
+        snapshot = MonitoringSnapshot()
+        #expect(snapshot.memory?.estimatedHeadroomPercentage == nil)
+        #expect(snapshot.memoryPressure == .unknown)
+    }
+
+    @Test func estimatedHeadroomBounds() {
+        #expect(MemoryReading(total: 0, used: 0).estimatedHeadroomPercentage == nil)
+        #expect(MemoryReading(total: 100, used: 0).estimatedHeadroomPercentage == 100)
+        #expect(MemoryReading(total: 100, used: 100).estimatedHeadroomPercentage == 0)
+        #expect(MemoryReading(total: 100, used: 60).estimatedHeadroomPercentage == 40)
+    }
+
     @Test func nativeMemorySample() throws {
         let memory = try #require(MemoryMonitor().sample())
         #expect(memory.total > 0)
