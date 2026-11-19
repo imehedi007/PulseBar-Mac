@@ -1,5 +1,31 @@
 # PulseBar — Engineering QA & Performance Audit Report
 
+## Keyboard Cleaning verification — November 19, 2026
+
+Working tree based on `23d7535d3dc196625355300fdfaa89b9b049c4a5`; no commit or push. This section supersedes earlier test counts. No performance benchmarks were repeated.
+
+- Debug build including tests: passed through Xcode BuildProject.
+- Release build: passed, `/tmp/PulseBar-Cleaning-Release.log`, code coverage disabled.
+- Final full test run: **28 passed, 0 failed** (27 Swift Testing unit tests, 1 UI test), `Test-PulseBar-2026.11.19_23-02-21-+0600.xcresult`.
+- New automated coverage checks all four durations, persisted settings, legacy decoding, invalid-duration fallback, countdown progression, expiry, active/inactive symbol selection and immediate state callbacks. Existing activation, deactivation, emergency callback, cancelled timeout, permission failure and pointer-event filtering tests remain passing. Tests inject a blocker and short deadlines; they do not intercept the user's keyboard.
+- UI automation verifies the cleaning switch and duration picker alongside existing pressure rows, pause/resume and settings assertions. Live keyboard interception, physical Escape, sleep and full 120-second expiry remain manual checks; no claim of end-to-end hardware verification is made.
+
+### Runtime warning investigation — unresolved Apple framework issue
+
+The test still reports “This method should not be called on the main thread as it may lead to UI unresponsiveness.” This is not a compiler warning and was not suppressed. The test passes despite it. Asynchronous XCTest waits and moving the launch-at-login query to a background task did not remove it; those speculative changes were reverted. Two intermediate diagnostic test runs failed to locate the status item; the final unchanged waiting strategy passed all assertions.
+
+Unified logging identifies the sender as Security.framework's `__SecTrustEvaluateThreadRuntimeCheck_block_invoke_2`. A debugger breakpoint reproduced the exact main-thread call chain during accessibility hierarchy inspection:
+
+`NSMenu(Accessibility)._accessibilityChildren → _NSAppleMenu.updateMenu → LSSharedFileListItemCopyResolvedURL → ProcessHasTCCAllFilesEntitlement → SecCodeCopySigningInformation → SecStaticCode.validateDirectory → SecTrustEvaluateInternal → SecTrustEvaluateIfNecessary`.
+
+The offending trust evaluation is inside Apple's AppKit/SharedFileList accessibility implementation, triggered by UI hierarchy queries, not an app-owned call in `PulseBarUITests.swift`. AppKit accessibility callbacks must remain on the main thread. Changing the test actor cannot move that implementation to a worker thread. No private API, swizzling, assertion removal or diagnostic suppression was introduced. A system/framework fix remains necessary; warning-free UI-test execution is **not achieved** on this machine.
+
+### Scope and manual checklist
+
+Changed feature files: `SettingsManager.swift` (validated persisted duration and legacy decoding), `KeyboardCleaning.swift` (selected native deadline and countdown), `ContentView.swift` (picker and countdown), `MenuBarController.swift` (immediate active-state refresh), `MenuBarFormatter.swift` (cached orange keyboard symbol), `KeyboardCleaningTests.swift`, `PulseBarUITests.swift`, README and this report. Existing uncommitted project sandbox configuration belongs to the preceding keyboard-blocking implementation; monitoring sources and calculations remain unchanged.
+
+With Accessibility permission granted, check activation for each duration, countdown with popover open/closed, orange symbol while metrics remain visible, Escape and mouse toggle-off, timeout, sleep/session switch and Quit. Verify a duration survives relaunch while active cleaning never does. Secure Input and hardware power controls remain outside this convenience feature's guarantees.
+
 ## Current verification — November 14, 2026
 
 This section supersedes the historical audit below. Historical measurements are retained as prior reported results, not newly verified claims.

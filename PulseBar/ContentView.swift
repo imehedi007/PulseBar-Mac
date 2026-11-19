@@ -4,6 +4,7 @@ import ServiceManagement
 struct StatusPopover: View {
     let service: MonitoringService
     let settings: SettingsManager
+    let cleaning: KeyboardCleaning
     @State private var showingSettings = false
 
     var body: some View {
@@ -14,6 +15,24 @@ struct StatusPopover: View {
                 Text(service.status).font(.caption).foregroundStyle(.secondary)
             }
             MetricsView(snapshot: service.snapshot, preferences: settings.preferences)
+            Divider()
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle(isOn: Binding(get: { cleaning.isActive }, set: { cleaning.setEnabled($0, seconds: settings.preferences.cleaningDuration) })) {
+                    Label("Keyboard Cleaning", systemImage: "keyboard")
+                }
+                .toggleStyle(.switch)
+                .accessibilityIdentifier("KeyboardCleaning")
+                Text(cleaning.isActive
+                     ? "Active — \(cleaning.remainingSeconds)s remaining. Press Esc or switch off to stop."
+                     : "Off — keyboard works normally. Cleaning ends after \(settings.preferences.cleaningDuration) seconds; mouse and trackpad stay usable.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let message = cleaning.message {
+                    Text(message).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open Accessibility Settings") { cleaning.openPermissions() }
+                }
+            }
             Divider()
             HStack {
                 Button(service.isRunning ? "Pause" : "Resume") { service.toggle() }
@@ -117,6 +136,13 @@ struct SettingsView: View {
             ThresholdEditor(title: "CPU", thresholds: binding(\.cpuThresholds))
             Text("RAM colors follow macOS memory pressure, not utilization thresholds.")
                 .font(.caption).foregroundStyle(.secondary)
+            Picker("Cleaning duration", selection: binding(\.cleaningDuration)) {
+                Text("15 seconds").tag(15)
+                Text("30 seconds").tag(30)
+                Text("60 seconds").tag(60)
+                Text("120 seconds").tag(120)
+            }
+            .accessibilityIdentifier("CleaningDuration")
             Toggle("Start monitoring automatically", isOn: binding(\.autoStart))
             Toggle("Launch at login", isOn: Binding(get: { settings.loginEnabled }, set: { settings.setLoginEnabled($0) }))
                 .disabled(settings.loginBusy)

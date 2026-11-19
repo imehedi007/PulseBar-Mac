@@ -27,6 +27,14 @@ enum MetricLevel: Equatable {
 }
 
 enum MenuBarFormatter {
+    // Reuse the symbol while metrics refresh; it is visible only during cleaning.
+    private static let keyboardImage = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "Keyboard Cleaning active")?
+        .withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+
+    static func cleaningIndicator(active: Bool) -> NSImage? {
+        active ? keyboardImage : nil
+    }
+
     static func memoryColor(_ pressure: MemoryPressure) -> NSColor {
         switch pressure {
         case .normal: return MetricLevel.normal.color

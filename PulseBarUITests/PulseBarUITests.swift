@@ -18,6 +18,7 @@ final class PulseBarUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Estimated headroom"].exists)
         let headroom = app.staticTexts["EstimatedMemoryHeadroom"]
         XCTAssertTrue(headroom.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["KeyboardCleaning"].firstMatch.exists)
         let original = pause.label
         pause.click()
         XCTAssertTrue(pause.wait(for: \.label, toEqual: original == "Pause" ? "Resume" : "Pause", timeout: 5))
@@ -26,5 +27,6 @@ final class PulseBarUITests: XCTestCase {
         app.buttons["Settings"].click()
         XCTAssertTrue(app.checkBoxes["Launch at login"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Restore Defaults"].exists)
+        XCTAssertTrue(app.popUpButtons["CleaningDuration"].exists)
     }
 }

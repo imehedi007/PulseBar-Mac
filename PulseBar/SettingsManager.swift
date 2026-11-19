@@ -21,8 +21,29 @@ struct Preferences: Codable, Equatable, Sendable {
     // Retained only for compatibility with saved preferences; RAM colors use OS pressure.
     var memoryThresholds = Thresholds()
     var autoStart = true
+    var cleaningDuration = 30
+
+    init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case cpuEnabled, memoryEnabled, networkEnabled, interval
+        case cpuThresholds, memoryThresholds, autoStart, cleaningDuration
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        cpuEnabled = try values.decode(Bool.self, forKey: .cpuEnabled)
+        memoryEnabled = try values.decode(Bool.self, forKey: .memoryEnabled)
+        networkEnabled = try values.decode(Bool.self, forKey: .networkEnabled)
+        interval = try values.decode(Double.self, forKey: .interval)
+        cpuThresholds = try values.decode(Thresholds.self, forKey: .cpuThresholds)
+        memoryThresholds = try values.decode(Thresholds.self, forKey: .memoryThresholds)
+        autoStart = try values.decode(Bool.self, forKey: .autoStart)
+        cleaningDuration = try values.decodeIfPresent(Int.self, forKey: .cleaningDuration) ?? 30
+    }
 
     mutating func normalize() {
+        if ![15, 30, 60, 120].contains(cleaningDuration) { cleaningDuration = 30 }
         if ![0.5, 1, 2, 5].contains(interval) { interval = 0.5 }
         cpuThresholds.normalize()
         memoryThresholds.normalize()
@@ -42,9 +63,25 @@ final class SettingsManager {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        // Direct-distribution builds retain preferences from the former sandbox.
+        if defaults === UserDefaults.standard, defaults.data(forKey: Self.key) == nil,
+           let identifier = Bundle.main.bundleIdentifier {
+            let legacy = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/Containers/\(identifier)/Data/Library/Preferences/\(identifier).plist")
+            Self.importLegacyPreferences(from: legacy, into: defaults)
+        }
         var value = defaults.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(Preferences.self, from: $0) } ?? Preferences()
         value.normalize()
         preferences = value
+    }
+
+    static func importLegacyPreferences(from url: URL, into defaults: UserDefaults) {
+        guard defaults.data(forKey: key) == nil,
+              let contents = try? Data(contentsOf: url),
+              let plist = try? PropertyListSerialization.propertyList(from: contents, format: nil) as? [String: Any],
+              let data = plist[key] as? Data,
+              (try? JSONDecoder().decode(Preferences.self, from: data)) != nil else { return }
+        defaults.set(data, forKey: key)
     }
 
     func update(_ change: (inout Preferences) -> Void) {

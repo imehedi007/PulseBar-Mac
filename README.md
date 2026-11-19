@@ -92,3 +92,21 @@ Run the suite using **Product > Test (⌘U)**. Tests do not enable launch at log
 ## Privacy and limitations
 
 All readings stay on your Mac. PulseBar does not collect analytics, send telemetry or require administrator privileges for ordinary monitoring. Network rates describe physical transport traffic rather than per-process usage. RAM percentage is an estimate, not Activity Monitor's memory-pressure measurement. Login-at-login approval and Intel hardware remain unverified.
+
+## Keyboard Cleaning
+
+The popover includes a **Keyboard Cleaning** switch with a keyboard icon. It starts off on every launch and is never persisted. When active, a native session event tap suppresses ordinary keyboard down/up, modifier and system-defined media-key events; mouse and trackpad events remain available. No keystrokes are stored or transmitted.
+
+- Click the switch off with your mouse, or press **Escape**, to stop immediately.
+- Choose **15, 30, 60 or 120 seconds** in Settings → Cleaning duration (default **30 seconds**). This preference persists across launches and applies on the next activation; changing it does not extend an active session. Older preferences retain their monitoring settings and default to 30 seconds.
+- The popover shows seconds remaining while active. An orange **keyboard** symbol appears alongside the existing menu-bar metrics and disappears when cleaning ends, including while monitoring is paused.
+- Cleaning automatically ends at the selected deadline, including when the popover is closed. Do not assume protection after that deadline.
+- Sleep, session deactivation, application termination, or macOS disabling the event tap ends cleaning. An unresponsive tap is not automatically re-enabled. macOS removes the tap if the process exits.
+- Enable PulseBar in **System Settings → Privacy & Security → Accessibility** before using the feature. The popover explains missing permission and offers a Settings button; it never displays Active when tap creation fails. If macOS also requires Input Monitoring, enable PulseBar there and relaunch. Ordinary system monitoring needs neither permission.
+- Secure Keyboard Entry, login/lock screens, Touch ID and hardware power controls are not covered. Activation is rejected if Secure Keyboard Entry is already enabled; this is a convenience feature, not a security lock or a guarantee that every hardware control is disabled.
+
+System-wide filtering requires a non-sandboxed direct-distribution build. App Sandbox is disabled for the app target; hardened runtime remains enabled. This configuration is not eligible for the Mac App Store. Existing preferences are imported from the previous sandbox container when readable and no current preferences exist; the old file is left intact. Login-item registration remains managed by macOS.
+
+Automated cleaning tests use a fake blocker so the suite cannot lock the test machine's keyboard. They cover activation/deactivation, denied activation, timeout, emergency-stop cancellation, keyboard/pointer event classification and legacy preference import. Physical keyboard suppression, media keys, permission grant/revocation, secure-input transitions and hardware sleep require manual verification on the signed installation.
+
+Validation for this update: Debug build with test targets succeeded; the full suite passed **28 tests** (27 unit tests and one UI test), with no failures or skips. Tests cover persisted duration choices, countdown, timeout and active-symbol transitions. The UI test confirms the cleaning control and duration picker are present. No real keyboard interception was activated by these tests. The remaining Apple-framework main-thread runtime warning and manual checks are documented in [QA_REPORT.md](QA_REPORT.md).
