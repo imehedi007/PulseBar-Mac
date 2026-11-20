@@ -24,6 +24,9 @@ struct Preferences: Codable, Equatable, Sendable {
     var cleaningDuration = 30
     var clipboardHistoryEnabled = true
     var clipboardLimit = 50
+    var screenshotEnabled = true
+    var screenshotAutoSave = false
+    var screenshotSaveDirectory = "~/Pictures/Screenshots"
 
     init() {}
 
@@ -31,6 +34,7 @@ struct Preferences: Codable, Equatable, Sendable {
         case cpuEnabled, memoryEnabled, networkEnabled, interval
         case cpuThresholds, memoryThresholds, autoStart, cleaningDuration
         case clipboardHistoryEnabled, clipboardLimit
+        case screenshotEnabled, screenshotAutoSave, screenshotSaveDirectory
     }
 
     init(from decoder: Decoder) throws {
@@ -45,6 +49,9 @@ struct Preferences: Codable, Equatable, Sendable {
         cleaningDuration = try values.decodeIfPresent(Int.self, forKey: .cleaningDuration) ?? 30
         clipboardHistoryEnabled = try values.decodeIfPresent(Bool.self, forKey: .clipboardHistoryEnabled) ?? true
         clipboardLimit = try values.decodeIfPresent(Int.self, forKey: .clipboardLimit) ?? 50
+        screenshotEnabled = try values.decodeIfPresent(Bool.self, forKey: .screenshotEnabled) ?? true
+        screenshotAutoSave = try values.decodeIfPresent(Bool.self, forKey: .screenshotAutoSave) ?? false
+        screenshotSaveDirectory = try values.decodeIfPresent(String.self, forKey: .screenshotSaveDirectory) ?? "~/Pictures/Screenshots"
     }
 
     mutating func normalize() {

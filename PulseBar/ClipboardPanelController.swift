@@ -665,7 +665,9 @@ struct ClipboardHistoryView: View {
 
                 primaryActionButton(for: item)
             }
-            .padding(16)
+            .padding(.horizontal, 14)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             VStack(spacing: 10) {
@@ -697,9 +699,6 @@ struct ClipboardHistoryView: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
             Spacer()
-            Text(item.timestamp.formatted(date: .omitted, time: .shortened))
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
@@ -1214,7 +1213,7 @@ private struct ClipboardRowView: View {
             if isSelected {
                 Capsule()
                     .fill(Color.accentColor)
-                    .frame(width: 3, height: item.type == .image ? 54 : 32)
+                    .frame(width: 3, height: 32)
                     .shadow(color: Color.accentColor.opacity(0.6), radius: 4)
             }
 
@@ -1228,7 +1227,7 @@ private struct ClipboardRowView: View {
         }
         .padding(.leading, isSelected ? 6 : 10)
         .padding(.trailing, 10)
-        .padding(.vertical, item.type == .image ? 6 : 8)
+        .padding(.vertical, 7)
         .background(rowBackground)
         .contentShape(Rectangle())
         .onHover { isHovered = $0 }
@@ -1357,30 +1356,30 @@ private struct ClipboardRowView: View {
                let image = ImageCache.shared.image(for: url) {
                 Image(nsImage: image)
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: 115, height: 68)
-                    .background(Color.black.opacity(0.4))
+                    .scaledToFill()
+                    .frame(width: 36, height: 36)
+                    .background(Color.black.opacity(0.3))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.75)
                     )
-                    .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1.5)
+                    .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.purple.opacity(0.8), Color.indigo.opacity(0.8)],
+                                colors: [Color.purple.opacity(0.85), Color.indigo.opacity(0.9)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                     Image(systemName: "photo.fill")
                         .foregroundStyle(.white)
-                        .font(.system(size: 20))
+                        .font(.system(size: 16))
                 }
-                .frame(width: 115, height: 68)
+                .frame(width: 36, height: 36)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.25), lineWidth: 0.5)

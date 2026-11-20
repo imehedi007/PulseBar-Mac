@@ -29,7 +29,22 @@ final class ClipboardHotKey {
         let installStatus = InstallEventHandler(
             GetApplicationEventTarget(),
             { (nextHandler, theEvent, userData) -> OSStatus in
-                guard let userData = userData else { return noErr }
+                guard let theEvent = theEvent, let userData = userData else {
+                    return CallNextEventHandler(nextHandler, theEvent)
+                }
+                var hotKeyID = EventHotKeyID()
+                let status = GetEventParameter(
+                    theEvent,
+                    EventParamName(kEventParamDirectObject),
+                    EventParamType(typeEventHotKeyID),
+                    nil,
+                    MemoryLayout<EventHotKeyID>.size,
+                    nil,
+                    &hotKeyID
+                )
+                guard status == noErr, hotKeyID.signature == OSType(0x50424342), hotKeyID.id == 1 else {
+                    return CallNextEventHandler(nextHandler, theEvent)
+                }
                 let hotKey = Unmanaged<ClipboardHotKey>.fromOpaque(userData).takeUnretainedValue()
                 let frontApp = NSWorkspace.shared.frontmostApplication
                 DispatchQueue.main.async {

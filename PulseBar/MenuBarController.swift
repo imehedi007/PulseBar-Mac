@@ -7,6 +7,7 @@ final class MenuBarController: NSObject {
     private let cleaning = KeyboardCleaning()
     private let clipboard: ClipboardManager
     private let clipboardPanel: ClipboardPanelController
+    private let screenshot: ScreenshotManager
     private let service: MonitoringService
     private let item = NSStatusBar.system.statusItem(withLength: 330)
     private let popover = NSPopover()
@@ -16,6 +17,7 @@ final class MenuBarController: NSObject {
         service = MonitoringService(preferences: settings.preferences)
         clipboard = ClipboardManager(settings: settings)
         clipboardPanel = ClipboardPanelController(clipboard: clipboard)
+        screenshot = ScreenshotManager(settings: settings)
         super.init()
         clipboard.onOpenPanel = { [weak self] targetApp in
             self?.popover.performClose(nil)
@@ -24,7 +26,9 @@ final class MenuBarController: NSObject {
         }
         popover.behavior = .transient
         popover.animates = false
-        let hosting = NSHostingController(rootView: StatusPopover(service: service, settings: settings, cleaning: cleaning, clipboard: clipboard))
+        let hosting = NSHostingController(rootView: StatusPopover(service: service, settings: settings, cleaning: cleaning, clipboard: clipboard, screenshot: screenshot, onDismissPopover: { [weak self] in
+            self?.popover.performClose(nil)
+        }))
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
         item.button?.target = self
@@ -33,6 +37,7 @@ final class MenuBarController: NSObject {
         settings.onChange = { [weak self] preferences in
             self?.service.configure(preferences)
             self?.clipboard.pruneToLimit()
+            self?.screenshot.setEnabled(preferences.screenshotEnabled)
         }
         cleaning.onStateChange = { [weak self] in self?.updateTitle() }
         service.onUpdate = { [weak self] in self?.updateTitle() }
@@ -90,6 +95,7 @@ final class MenuBarController: NSObject {
         cleaning.stop()
         service.stop()
         clipboard.shutdown()
+        screenshot.shutdown()
         clipboardPanel.close()
         popover.close()
         NSWorkspace.shared.notificationCenter.removeObserver(self)

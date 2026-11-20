@@ -34,7 +34,22 @@ A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard h
 - **Deduplication & History Limit**: Re-copied items jump to the top; configurable history capacity (25, 50, 100, 200 items).
 - **Privacy by Design**: All history is stored locally in `~/Library/Application Support/PulseBar/Clipboard/`. Automatically ignores password managers and transient data (`org.nspasteboard.TransientType`, `org.nspasteboard.ConcealedType`).
 
-### 3. Keyboard Cleaning Mode
+### 3. Screenshot & Annotation Tool (Lightshot-Inspired)
+- **Global Hotkey (`⌘ + Shift + S`)**: Instant screen freeze-frame capture across all displays with full-screen selection.
+- **Custom Region Dragging**: Click and drag to select any desktop area with dimension readout (`width × height px`) and 8-point resize handles.
+- **Annotation Suite**:
+  - **Arrow**: Sharp directional arrows with proportional arrowheads.
+  - **Rectangle**: Clean bounding box with rounded corners.
+  - **Pen**: Smooth freehand drawing with anti-aliasing.
+  - **Highlighter**: Semi-transparent marker stroke for emphasizing text or UI elements.
+  - **Text**: Crisp inline text annotations with high-contrast background tags.
+  - **Color Palette & Styling**: Vibrant preset colors (Red, Orange, Yellow, Green, Blue, White, Black).
+  - **Undo / Redo (`⌘Z` / `⌘⇧Z`)**: Full annotation history stack.
+- **Primary Workflow (`⌘C`)**: Copies the annotated region directly to the system clipboard at full native Retina resolution.
+- **Save to Disk (`⌘S`)**: Saves high-resolution PNGs to `~/Pictures/Screenshots/` with auto-save options.
+- **Retina & Display Scaling**: Native backing scale factor preservation for pixel-perfect captures.
+
+### 4. Keyboard Cleaning Mode
 - **Session Keyboard Lock**: Disables keystrokes, modifier keys, and media controls to allow safe physical cleaning of your keyboard while keeping the mouse and trackpad active.
 - **Emergency Exit**: Press `Escape` or toggle the switch off to restore input immediately.
 - **Preset Durations**: Select 15s, 30s, 60s, or 120s countdown timers.
@@ -57,6 +72,11 @@ A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard h
 | `ClipboardManager.swift` | Pasteboard Store | Pasteboard polling, format classification, JSON/PNG storage, deduplication |
 | `ClipboardHotKey.swift` | Global Shortcut | Carbon Event HotKey registration (`⌘⇧V`), conflict handling |
 | `ClipboardPanelController.swift` | Spotlight Window | Floating `NSPanel`, keyboard navigation, auto-paste injection, `ImageCache` |
+| `ScreenshotManager.swift` | Screenshot Engine | Screenshot lifecycle, pasteboard copying, automatic and manual disk saving |
+| `ScreenshotHotKey.swift` | Global Shortcut | Carbon Event HotKey registration (`⌘⇧S`), conflict handling |
+| `ScreenshotCaptureService.swift` | Screen Capture | Native display capture, multi-monitor bounds, Retina scaling, permission checks |
+| `ScreenshotOverlayController.swift` | Annotation UI | Multi-display selection overlay, 8 resize handles, Liquid Glass annotation toolbar |
+| `ScreenshotModel.swift` | Vector Model | Annotation tools, undo/redo history, Retina-scaled CoreGraphics composite rendering |
 
 ---
 

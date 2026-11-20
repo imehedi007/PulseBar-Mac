@@ -95,7 +95,10 @@ struct KeyboardCleaningTests {
         cleaning.onStateChange = { states.append(cleaning.isActive) }
         cleaning.setEnabled(true)
         #expect(cleaning.remainingSeconds == 3)
-        try await Task.sleep(for: .milliseconds(1100))
+        for _ in 0..<30 {
+            if cleaning.remainingSeconds < 3 { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
         #expect(cleaning.remainingSeconds < 3)
         for _ in 0..<200 {
             if !cleaning.isActive { break }
