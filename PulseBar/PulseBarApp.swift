@@ -7,6 +7,7 @@ struct PulseBarApp: App {
 
     var body: some Scene {
         Settings { EmptyView() }
+            .commandsRemoved()
     }
 }
 
@@ -16,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        NSApp.mainMenu = nil
         controller = MenuBarController()
     }
 

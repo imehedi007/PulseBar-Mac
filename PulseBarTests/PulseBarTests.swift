@@ -69,7 +69,8 @@ struct PulseBarTests {
         #expect(MenuBarFormatter.speed(.infinity) == "—")
         #expect(MenuBarFormatter.speed(.greatestFiniteMagnitude) == "—")
         #expect(MenuBarFormatter.percent(90) == "90%")
-        #expect(MenuBarFormatter.gigabytes(16_000_000_000) == "16.0")
+        #expect(MenuBarFormatter.gigabytes(8_589_934_592) == "8.0")
+        #expect(MenuBarFormatter.gigabytes(17_179_869_184) == "16.0")
     }
 
     @Test func thresholds() {

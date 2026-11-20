@@ -3,6 +3,18 @@ import AppKit
 enum MetricLevel: Equatable {
     case normal, warning, critical
 
+    private static let normalColor = NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.40, green: 0.90, blue: 0.52, alpha: 1)
+            : NSColor(calibratedRed: 0.05, green: 0.40, blue: 0.15, alpha: 1)
+    }
+
+    private static let warningColor = NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(calibratedRed: 1, green: 0.76, blue: 0.30, alpha: 1)
+            : NSColor(calibratedRed: 0.55, green: 0.30, blue: 0, alpha: 1)
+    }
+
     static func level(_ value: Double, thresholds: Thresholds) -> Self {
         if value >= Double(thresholds.critical) { return .critical }
         if value >= Double(thresholds.warning) { return .warning }
@@ -11,16 +23,8 @@ enum MetricLevel: Equatable {
 
     var color: NSColor {
         switch self {
-        case .normal: return NSColor(name: nil) { appearance in
-            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                ? NSColor(calibratedRed: 0.40, green: 0.90, blue: 0.52, alpha: 1)
-                : NSColor(calibratedRed: 0.05, green: 0.40, blue: 0.15, alpha: 1)
-        }
-        case .warning: return NSColor(name: nil) { appearance in
-            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                ? NSColor(calibratedRed: 1, green: 0.76, blue: 0.30, alpha: 1)
-                : NSColor(calibratedRed: 0.55, green: 0.30, blue: 0, alpha: 1)
-        }
+        case .normal: return Self.normalColor
+        case .warning: return Self.warningColor
         case .critical: return .systemRed
         }
     }
@@ -30,6 +34,8 @@ enum MenuBarFormatter {
     // Reuse the symbol while metrics refresh; it is visible only during cleaning.
     private static let keyboardImage = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "Keyboard Cleaning active")?
         .withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+
+    private static let titleFont = NSFont.monospacedSystemFont(ofSize: 11, weight: .medium)
 
     static func cleaningIndicator(active: Bool) -> NSImage? {
         active ? keyboardImage : nil
@@ -62,12 +68,12 @@ enum MenuBarFormatter {
     }
 
     static func gigabytes(_ bytes: UInt64) -> String {
-        String(format: "%.1f", Double(bytes) / 1_000_000_000)
+        String(format: "%.1f", Double(bytes) / 1_073_741_824)
     }
 
     static func title(snapshot: MonitoringSnapshot, preferences: Preferences, running: Bool) -> NSAttributedString {
         let result = NSMutableAttributedString()
-        let font = NSFont.monospacedSystemFont(ofSize: 11, weight: .medium)
+        let font = titleFont
         func append(_ text: String, color: NSColor = .labelColor) {
             result.append(NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color]))
         }

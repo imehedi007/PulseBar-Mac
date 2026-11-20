@@ -5,6 +5,7 @@ struct StatusPopover: View {
     let service: MonitoringService
     let settings: SettingsManager
     let cleaning: KeyboardCleaning
+    let clipboard: ClipboardManager
     @State private var showingSettings = false
 
     var body: some View {
@@ -31,6 +32,36 @@ struct StatusPopover: View {
                     Text(message).font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Open Accessibility Settings") { cleaning.openPermissions() }
+                }
+            }
+            Divider()
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle(isOn: Binding(get: { clipboard.isEnabled }, set: { clipboard.setEnabled($0) })) {
+                    Label("Clipboard History", systemImage: "doc.on.clipboard")
+                }
+                .toggleStyle(.switch)
+                .accessibilityIdentifier("ClipboardHistory")
+                HStack {
+                    Text(clipboard.isEnabled
+                         ? "\(clipboard.items.count) item\(clipboard.items.count == 1 ? "" : "s") saved • ⌘⇧V for panel"
+                         : "Off — clipboard capture paused.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("ClipboardStatusText")
+                    Spacer()
+                    if clipboard.isEnabled {
+                        Button("Open Panel") {
+                            clipboard.openPanel()
+                        }
+                        .buttonStyle(.link)
+                        .font(.caption)
+                        .accessibilityIdentifier("OpenClipboardPanel")
+                    }
+                }
+                if let error = clipboard.shortcutConflictError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             Divider()
@@ -143,6 +174,13 @@ struct SettingsView: View {
                 Text("120 seconds").tag(120)
             }
             .accessibilityIdentifier("CleaningDuration")
+            Picker("Clipboard history limit", selection: binding(\.clipboardLimit)) {
+                Text("25 items").tag(25)
+                Text("50 items").tag(50)
+                Text("100 items").tag(100)
+                Text("200 items").tag(200)
+            }
+            .accessibilityIdentifier("ClipboardLimit")
             Toggle("Start monitoring automatically", isOn: binding(\.autoStart))
             Toggle("Launch at login", isOn: Binding(get: { settings.loginEnabled }, set: { settings.setLoginEnabled($0) }))
                 .disabled(settings.loginBusy)

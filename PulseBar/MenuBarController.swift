@@ -5,28 +5,42 @@ import SwiftUI
 final class MenuBarController: NSObject {
     private let settings = SettingsManager()
     private let cleaning = KeyboardCleaning()
+    private let clipboard: ClipboardManager
+    private let clipboardPanel: ClipboardPanelController
     private let service: MonitoringService
     private let item = NSStatusBar.system.statusItem(withLength: 330)
     private let popover = NSPopover()
+    private var lastExternalApp: NSRunningApplication?
 
     override init() {
         service = MonitoringService(preferences: settings.preferences)
+        clipboard = ClipboardManager(settings: settings)
+        clipboardPanel = ClipboardPanelController(clipboard: clipboard)
         super.init()
+        clipboard.onOpenPanel = { [weak self] targetApp in
+            self?.popover.performClose(nil)
+            let app = targetApp ?? self?.lastExternalApp
+            self?.clipboardPanel.show(targetApp: app)
+        }
         popover.behavior = .transient
         popover.animates = false
-        let hosting = NSHostingController(rootView: StatusPopover(service: service, settings: settings, cleaning: cleaning))
+        let hosting = NSHostingController(rootView: StatusPopover(service: service, settings: settings, cleaning: cleaning, clipboard: clipboard))
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
         item.button?.setAccessibilityIdentifier("PulseBarStatus")
-        settings.onChange = { [weak self] preferences in self?.service.configure(preferences) }
+        settings.onChange = { [weak self] preferences in
+            self?.service.configure(preferences)
+            self?.clipboard.pruneToLimit()
+        }
         cleaning.onStateChange = { [weak self] in self?.updateTitle() }
         service.onUpdate = { [weak self] in self?.updateTitle() }
         let center = NSWorkspace.shared.notificationCenter
         center.addObserver(self, selector: #selector(willSleep), name: NSWorkspace.willSleepNotification, object: nil)
         center.addObserver(self, selector: #selector(didWake), name: NSWorkspace.didWakeNotification, object: nil)
         center.addObserver(self, selector: #selector(endCleaning), name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+        center.addObserver(self, selector: #selector(didActivateApp(_:)), name: NSWorkspace.didActivateApplicationNotification, object: nil)
         settings.refreshLoginStatus()
         service.restart()
     }
@@ -39,7 +53,7 @@ final class MenuBarController: NSObject {
         item.length = cleaning.isActive ? 354 : 330
         if item.button?.attributedTitle != title { item.button?.attributedTitle = title }
         let cleaningStatus = cleaning.isActive ? ", Keyboard Cleaning active" : ""
-        item.button?.toolTip = "PulseBar — " + service.status + cleaningStatus
+        item.button?.toolTip = "PulseBar \u{2014} " + service.status + cleaningStatus
         item.button?.setAccessibilityLabel("PulseBar, " + title.string + ", " + service.status + cleaningStatus)
     }
 
@@ -54,13 +68,29 @@ final class MenuBarController: NSObject {
         }
     }
 
+    @objc private func didActivateApp(_ notification: Notification) {
+        if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+           app.bundleIdentifier != Bundle.main.bundleIdentifier {
+            lastExternalApp = app
+        }
+    }
+
     @objc private func endCleaning() { cleaning.stop() }
-    @objc private func willSleep() { cleaning.stop(); service.sleep() }
-    @objc private func didWake() { service.wake() }
+    @objc private func willSleep() {
+        cleaning.stop()
+        service.sleep()
+        clipboard.sleep()
+    }
+    @objc private func didWake() {
+        service.wake()
+        clipboard.wake()
+    }
 
     func shutdown() {
         cleaning.stop()
         service.stop()
+        clipboard.shutdown()
+        clipboardPanel.close()
         popover.close()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         NSStatusBar.system.removeStatusItem(item)

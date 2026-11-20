@@ -22,12 +22,15 @@ struct Preferences: Codable, Equatable, Sendable {
     var memoryThresholds = Thresholds()
     var autoStart = true
     var cleaningDuration = 30
+    var clipboardHistoryEnabled = true
+    var clipboardLimit = 50
 
     init() {}
 
     private enum CodingKeys: String, CodingKey {
         case cpuEnabled, memoryEnabled, networkEnabled, interval
         case cpuThresholds, memoryThresholds, autoStart, cleaningDuration
+        case clipboardHistoryEnabled, clipboardLimit
     }
 
     init(from decoder: Decoder) throws {
@@ -40,10 +43,13 @@ struct Preferences: Codable, Equatable, Sendable {
         memoryThresholds = try values.decode(Thresholds.self, forKey: .memoryThresholds)
         autoStart = try values.decode(Bool.self, forKey: .autoStart)
         cleaningDuration = try values.decodeIfPresent(Int.self, forKey: .cleaningDuration) ?? 30
+        clipboardHistoryEnabled = try values.decodeIfPresent(Bool.self, forKey: .clipboardHistoryEnabled) ?? true
+        clipboardLimit = try values.decodeIfPresent(Int.self, forKey: .clipboardLimit) ?? 50
     }
 
     mutating func normalize() {
         if ![15, 30, 60, 120].contains(cleaningDuration) { cleaningDuration = 30 }
+        if ![25, 50, 100, 200].contains(clipboardLimit) { clipboardLimit = 50 }
         if ![0.5, 1, 2, 5].contains(interval) { interval = 0.5 }
         cpuThresholds.normalize()
         memoryThresholds.normalize()
