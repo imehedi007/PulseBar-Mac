@@ -1098,7 +1098,7 @@ struct ScreenshotToolbarView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
-            VisualEffectBackground()
+            VisualEffectView(material: .popover, blendingMode: .withinWindow)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
@@ -1116,19 +1116,3 @@ struct ScreenshotToolbarView: View {
     }
 }
 
-private struct VisualEffectBackground: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.blendingMode = .withinWindow
-        view.material = .popover
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
-}
-
-// Note: VisualEffectView in ClipboardPanelController.swift supports additional
-// configurable properties (material, blendingMode, state, isEmphasized) needed
-// by the clipboard panel UI. This minimal variant is intentionally kept separate
-// to avoid coupling the screenshot toolbar to those parameters.

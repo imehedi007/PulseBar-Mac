@@ -80,3 +80,10 @@
 4. **Event Tap Boundary**:
    - Keyboard interception is session-only and never retained across restarts.
    - Event tap automatically releases on sleep, session switch, app termination, or Escape key invocation.
+
+5. **Code Maintainability & Performance Optimization**:
+   - **Unified Global HotKeys (`GlobalHotKey`)**: Replaced ~150 lines of duplicate low-level Carbon C-API registration boilerplate across `ClipboardHotKey` and `ScreenshotHotKey` with a unified, type-safe `GlobalHotKey` base class.
+   - **Visual Effect View Consolidation**: Eliminated redundant `VisualEffectBackground` implementation in `ScreenshotOverlayController`, standardizing on the shared `VisualEffectView` component.
+   - **Mach IPC & Allocation Optimization**: Cached system page size statically in `MemoryMonitor` to avoid redundant per-sample Mach host calls; optimized `ClipboardManager` text parsing to avoid multi-pass string allocations.
+   - **UI Test Resilience**: Upgraded menu bar status item querying in `PulseBarUITests` with explicit accessibility identification (`PulseBarStatus`) and adaptive timeout handling to eliminate cold-launch test flakiness on macOS 14+ CLI test runners.
+

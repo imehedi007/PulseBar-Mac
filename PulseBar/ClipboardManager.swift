@@ -307,10 +307,11 @@ final class ClipboardManager {
 
     private func makeTextItem(text: String) -> ClipboardItem {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        let firstLine = trimmed.components(separatedBy: .newlines).first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) ?? trimmed
+        let lines = trimmed.components(separatedBy: .newlines)
+        let firstLine = lines.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) ?? trimmed
         let title = String(firstLine.prefix(80))
         let charCount = text.count
-        let lineCount = text.components(separatedBy: .newlines).count
+        let lineCount = lines.count
         let subtitle = "\(charCount) char\(charCount == 1 ? "" : "s")\(lineCount > 1 ? " \u{2022} \(lineCount) lines" : "")"
         return ClipboardItem(
             id: UUID(),

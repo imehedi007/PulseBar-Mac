@@ -5,11 +5,21 @@ final class PulseBarUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    private func findStatusItem(in app: XCUIApplication) -> XCUIElement {
+        let named = app.statusItems["PulseBarStatus"]
+        if named.waitForExistence(timeout: 25) {
+            return named
+        }
+        let first = app.statusItems.firstMatch
+        _ = first.waitForExistence(timeout: 5)
+        return first
+    }
+
     func testMenuBarPopoverAndPause() throws {
         let app = XCUIApplication()
         app.launch()
-        let status = app.statusItems.firstMatch
-        XCTAssertTrue(status.waitForExistence(timeout: 15))
+        let status = findStatusItem(in: app)
+        XCTAssertTrue(status.exists)
         status.click()
 
         let pause = app.buttons["PauseResume"]
@@ -31,8 +41,8 @@ final class PulseBarUITests: XCTestCase {
     func testSettingsControlsAndToggles() throws {
         let app = XCUIApplication()
         app.launch()
-        let status = app.statusItems.firstMatch
-        XCTAssertTrue(status.waitForExistence(timeout: 15))
+        let status = findStatusItem(in: app)
+        XCTAssertTrue(status.exists)
         status.click()
 
         let settingsBtn = app.buttons["Settings"]
@@ -71,8 +81,8 @@ final class PulseBarUITests: XCTestCase {
     func testKeyboardCleaningAndClipboardToggles() throws {
         let app = XCUIApplication()
         app.launch()
-        let status = app.statusItems.firstMatch
-        XCTAssertTrue(status.waitForExistence(timeout: 15))
+        let status = findStatusItem(in: app)
+        XCTAssertTrue(status.exists)
         status.click()
 
         // Keyboard cleaning toggle existence

@@ -102,20 +102,28 @@ enum MemoryPressure: String, Equatable, Sendable {
 }
 
 struct MemoryMonitor {
+    private static let systemPageSize: UInt64 = {
+        var pageSize: vm_size_t = 0
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
+        if host_page_size(host, &pageSize) == KERN_SUCCESS && pageSize > 0 {
+            return UInt64(pageSize)
+        }
+        return UInt64(vm_kernel_page_size)
+    }()
+
     func sample() -> MemoryReading? {
         var info = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         let host = mach_host_self()
         defer { mach_port_deallocate(mach_task_self_, host) }
-        var pageSize: vm_size_t = 0
-        guard host_page_size(host, &pageSize) == KERN_SUCCESS else { return nil }
         let result = withUnsafeMutablePointer(to: &info) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
                 host_statistics64(host, HOST_VM_INFO64, $0, &count)
             }
         }
         guard result == KERN_SUCCESS else { return nil }
-        return .calculate(total: ProcessInfo.processInfo.physicalMemory, pageSize: UInt64(pageSize),
+        return .calculate(total: ProcessInfo.processInfo.physicalMemory, pageSize: Self.systemPageSize,
                           active: UInt64(info.active_count), inactive: UInt64(info.inactive_count),
                           wired: UInt64(info.wire_count), compressed: UInt64(info.compressor_page_count),
                           purgeable: UInt64(info.purgeable_count),
@@ -178,6 +186,7 @@ struct NetworkMonitor {
         guard getifaddrs(&head) == 0 else { calculator = NetworkCalculator(); return nil }
         defer { freeifaddrs(head) }
         var counters: [String: InterfaceBytes] = [:]
+        counters.reserveCapacity(4)
         var cursor = head
         while let entry = cursor {
             defer { cursor = entry.pointee.ifa_next }
