@@ -58,6 +58,7 @@ struct StatusPopover: View {
         .padding(.top, 14)
         .padding(.bottom, 14)
         .frame(width: 375, height: 380)
+        .preferredColorScheme(.dark)
         .onExitCommand {
             if showingSettings {
                 withAnimation(.easeInOut(duration: 0.16)) {
@@ -150,9 +151,12 @@ struct StatusPopover: View {
                 }
                 .padding(9)
                 .background(
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(Color.primary.opacity(0.035))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.primary.opacity(0.06), lineWidth: 0.5))
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                        )
                 )
 
                 // 2. Clipboard History Card
@@ -211,9 +215,12 @@ struct StatusPopover: View {
                 }
                 .padding(9)
                 .background(
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(Color.primary.opacity(0.035))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.primary.opacity(0.06), lineWidth: 0.5))
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                        )
                 )
 
                 // 3. Screenshot & Annotation Card
@@ -284,9 +291,12 @@ struct StatusPopover: View {
                 }
                 .padding(9)
                 .background(
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(Color.primary.opacity(0.035))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.primary.opacity(0.06), lineWidth: 0.5))
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                        )
                 )
             }
 
@@ -418,8 +428,12 @@ private struct MetricsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.primary.opacity(0.04))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                    )
             )
             .help("CPU Usage • Warning: \(Int(preferences.cpuThresholds.warning))% • Critical: \(Int(preferences.cpuThresholds.critical))%")
 
@@ -451,8 +465,12 @@ private struct MetricsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.primary.opacity(0.04))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                    )
             )
             .help(ramTooltipText)
 
@@ -494,8 +512,12 @@ private struct MetricsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.primary.opacity(0.04))
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5)
+                    )
             )
         }
     }

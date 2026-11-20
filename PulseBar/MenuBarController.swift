@@ -26,10 +26,13 @@ final class MenuBarController: NSObject {
         }
         popover.behavior = .transient
         popover.animates = false
+        popover.appearance = NSAppearance(named: .vibrantDark)
         let hosting = NSHostingController(rootView: StatusPopover(service: service, settings: settings, cleaning: cleaning, clipboard: clipboard, screenshot: screenshot, onDismissPopover: { [weak self] in
             self?.popover.performClose(nil)
         }))
         hosting.sizingOptions = [.preferredContentSize]
+        hosting.view.wantsLayer = true
+        hosting.view.layer?.backgroundColor = .clear
         popover.contentViewController = hosting
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
@@ -69,7 +72,16 @@ final class MenuBarController: NSObject {
             settings.refreshLoginStatus()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
+            if let window = popover.contentViewController?.view.window {
+                window.makeKey()
+                window.hasShadow = true
+                window.invalidateShadow()
+                if let frameView = window.contentView?.superview as? NSVisualEffectView {
+                    frameView.material = .hudWindow
+                    frameView.state = .active
+                    frameView.blendingMode = .behindWindow
+                }
+            }
         }
     }
 
