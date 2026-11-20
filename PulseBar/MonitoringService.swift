@@ -27,9 +27,9 @@ private final class SamplingWorker: @unchecked Sendable {
             pressureGeneration += 1
             pressureSource?.cancel()
             pressureSource = nil
-            // A new subscription has no guaranteed initial event. Never infer pressure
-            // from RAM utilization or carry a stale value across sleep/pause/restart.
-            latestSnapshot = MonitoringSnapshot()
+            // Query current kernel pressure level if memory monitoring is enabled
+            let initialPressure = (running && preferences.memoryEnabled) ? MemoryPressure.current() : .unknown
+            latestSnapshot = MonitoringSnapshot(memoryPressure: initialPressure)
             cpu = CPUMonitor()
             network = NetworkMonitor()
             guard running && (preferences.cpuEnabled || preferences.memoryEnabled || preferences.networkEnabled) else { return }
@@ -52,11 +52,13 @@ private final class SamplingWorker: @unchecked Sendable {
             source.schedule(deadline: .now(), repeating: preferences.interval, leeway: .milliseconds(25))
             source.setEventHandler { [weak self] in
                 guard let self else { return }
+                let kernelPressure = preferences.memoryEnabled ? MemoryPressure.current() : .unknown
+                let pressure = kernelPressure != .unknown ? kernelPressure : latestSnapshot.memoryPressure
                 latestSnapshot = MonitoringSnapshot(
                     cpu: preferences.cpuEnabled ? cpu.sample() : nil,
                     memory: preferences.memoryEnabled ? memory.sample() : nil,
                     network: preferences.networkEnabled ? network.sample() : nil,
-                    memoryPressure: latestSnapshot.memoryPressure)
+                    memoryPressure: pressure)
                 deliver(latestSnapshot)
             }
             timer = source

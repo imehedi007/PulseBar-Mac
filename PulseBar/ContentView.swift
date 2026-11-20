@@ -101,14 +101,14 @@ private struct MetricsView: View {
             }
             GridRow {
                 Text("OS Reported")
-                    .help("Memory pressure reported by macOS. Unknown until a pressure notification arrives.")
+                    .help("Memory pressure reported by macOS kernel (kern.memorystatus_vm_pressure_level).")
                 Text(preferences.memoryEnabled ? snapshot.memoryPressure.rawValue : "Disabled")
                     .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(preferences.memoryEnabled ? snapshot.memoryPressure : .unknown)))
                     .accessibilityIdentifier("MemoryPressureStatus")
             }
             GridRow {
                 Text("Estimated headroom")
-                    .help("Estimated memory headroom: (total − estimated used RAM) / total. Not OS memory pressure; inactive caches count as used.")
+                    .help("Estimated memory headroom: (total − memory used) / total.")
                 Text(preferences.memoryEnabled
                      ? snapshot.memory?.estimatedHeadroomPercentage.map { "\(MenuBarFormatter.percent($0)) available" } ?? "Unavailable"
                      : "Disabled")

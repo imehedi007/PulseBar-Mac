@@ -25,6 +25,25 @@ struct PulseBarTests {
                                         inactive: 0, wired: 0, compressed: 0, purgeable: 9).percentage == 0)
     }
 
+    @Test func activityMonitorAlignedMemoryCalculation() {
+        // App = (internal 25 - purgeable 5) = 20 pages
+        // Wired = 20 pages
+        // Compressed = 10 pages
+        // Used = (20 + 20 + 10) * 10 = 500 bytes (inactive 10 pages excluded)
+        let memory = MemoryReading.calculate(total: 1000, pageSize: 10, active: 20,
+                                              inactive: 10, wired: 20, compressed: 10,
+                                              purgeable: 5, internalPages: 25)
+        #expect(memory.used == 500)
+        #expect(memory.available == 500)
+        #expect(abs(memory.percentage - 50) < 0.0001)
+        #expect(abs((memory.estimatedHeadroomPercentage ?? 0) - 50) < 0.0001)
+    }
+
+    @Test func memoryPressureCurrent() {
+        let pressure = MemoryPressure.current()
+        #expect([.normal, .warning, .critical].contains(pressure))
+    }
+
     @Test func networkDeltasAndResets() {
         var calculator = NetworkCalculator()
         func bytes(_ received: UInt64, _ sent: UInt64, _ index: UInt32 = 1) -> InterfaceBytes {

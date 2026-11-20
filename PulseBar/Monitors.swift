@@ -51,14 +51,22 @@ struct MemoryReading: Equatable, Sendable {
     }
     var percentage: Double { total > 0 ? Double(used) / Double(total) * 100 : 0 }
 
-    // Resident active + inactive + wired + compressed pages, less reclaimable
-    // purgeable pages. Speculative/free pages and disk swap are not used RAM.
-    // This is a usage estimate, NOT Activity Monitor's memory-pressure metric.
+    // Memory Used matches macOS Activity Monitor:
+    // App Memory (internal pages - purgeable) + Wired Memory + Compressed Memory.
+    // Inactive file-backed caches are reclaimable by the kernel and excluded from used.
+    // When internalPages is nil (legacy/fallback), falls back to resident - purgeable.
     static func calculate(total: UInt64, pageSize: UInt64, active: UInt64,
                           inactive: UInt64, wired: UInt64, compressed: UInt64,
-                          purgeable: UInt64) -> Self {
-        let resident = Double(active) + Double(inactive) + Double(wired) + Double(compressed)
-        let bytes = max(0, resident - Double(purgeable)) * Double(pageSize)
+                          purgeable: UInt64, internalPages: UInt64? = nil) -> Self {
+        let usedPages: Double
+        if let internalPages {
+            let appPages = internalPages > purgeable ? Double(internalPages - purgeable) : 0
+            usedPages = appPages + Double(wired) + Double(compressed)
+        } else {
+            let resident = Double(active) + Double(inactive) + Double(wired) + Double(compressed)
+            usedPages = max(0, resident - Double(purgeable))
+        }
+        let bytes = usedPages * Double(pageSize)
         return Self(total: total, used: UInt64(min(Double(total), bytes)))
     }
 }
@@ -75,6 +83,22 @@ enum MemoryPressure: String, Equatable, Sendable {
         else if events.contains(.warning) { self = .warning }
         else if events.contains(.normal) { self = .normal }
         else { self = .unknown }
+    }
+
+    /// Queries the kernel's active VM pressure level directly via sysctl.
+    /// Used at startup or when edge-triggered DispatchSource events have not arrived yet.
+    static func current() -> Self {
+        var level: Int32 = 0
+        var size = MemoryLayout<Int32>.size
+        guard sysctlbyname("kern.memorystatus_vm_pressure_level", &level, &size, nil, 0) == 0 else {
+            return .unknown
+        }
+        switch level {
+        case 1: return .normal
+        case 2: return .warning
+        case 4...: return .critical
+        default: return .unknown
+        }
     }
 }
 
@@ -95,7 +119,8 @@ struct MemoryMonitor {
         return .calculate(total: ProcessInfo.processInfo.physicalMemory, pageSize: UInt64(pageSize),
                           active: UInt64(info.active_count), inactive: UInt64(info.inactive_count),
                           wired: UInt64(info.wire_count), compressed: UInt64(info.compressor_page_count),
-                          purgeable: UInt64(info.purgeable_count))
+                          purgeable: UInt64(info.purgeable_count),
+                          internalPages: UInt64(info.internal_page_count))
     }
 }
 
