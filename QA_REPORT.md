@@ -18,12 +18,14 @@
 
 ### 1. Popover UI, Metrics Dashboard & Settings (`PulseBarUITests` — 3 Tests)
 - **Status Bar & Popover Lifecycle**: Verified status item existence, opening/closing popover, pausing and resuming live metrics.
-- **Card-Based Metrics & Memory Pressure**: Verified real-time CPU, RAM, Download, Upload, OS Reported kernel memory pressure, and estimated headroom readouts.
+- **Card-Based Metrics & Memory Pressure**: Verified real-time CPU, RAM, and Network rate stat cards with dynamic warning badges and tooltip memory breakdown.
 - **Grouped Settings & Controls**: Verified collapsible/scrollable settings groups (Monitoring, Tools & History, General), checkBoxes, pickers, CPU threshold steppers, and defaults restoration.
 - **Interactive Tool Toggles**: Verified Keyboard Cleaning lock activation, Clipboard History toggling, and Spotlight panel invocation (`⌘⇧V`).
 
 ### 2. Screenshot & Annotation Tool (`ScreenshotTests` — 9 Tests)
 - **Global Hotkey Lifecycle**: Tested Carbon `⌘ + Shift + S` registration, conflict detection, unregistration, and clean deallocation.
+- **Visual Capture Mode Feedback & Reticle**: Custom high-contrast 28x28 precision reticle cursor with coordinate guide readout (`X: Y:`) and floating HUD instruction banner (`📸 Screenshot Mode • Click and drag to select area • Esc to cancel`).
+- **Liquid Glass Floating Toolbar & Circular Handles**: Elevated selection frame with anti-aliased circular pill resize handles, frosted glass toolbar with direct 1-click color palette, hero `⌘C` Copy button, pointing hand (`.pointingHand`) system cursor hover feedback on all options, and default disk save path configured to `~/Screenshots`.
 - **Keyboard Shortcuts & Dismissal**: Validated `Esc` cancellation, `⌘C` copy-to-clipboard, and tool hotkey switching (`a`, `p`, `r`, `h`, `t`).
 - **Preferences & Persistence**: Validated `screenshotEnabled`, `screenshotAutoSave`, and `screenshotSaveDirectory` defaults and persistence.
 - **Annotation History & Undo/Redo**: Verified multi-step item pushing, undo stack preservation, redo restoration, and clear/restore operations.

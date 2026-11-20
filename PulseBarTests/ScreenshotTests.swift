@@ -12,7 +12,7 @@ struct ScreenshotTests {
         let settings = SettingsManager(defaults: defaults)
         #expect(settings.preferences.screenshotEnabled == true)
         #expect(settings.preferences.screenshotAutoSave == false)
-        #expect(settings.preferences.screenshotSaveDirectory == "~/Pictures/Screenshots")
+        #expect(settings.preferences.screenshotSaveDirectory == "~/Screenshots")
 
         settings.update {
             $0.screenshotEnabled = false

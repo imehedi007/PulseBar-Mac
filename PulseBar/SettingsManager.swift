@@ -26,7 +26,7 @@ struct Preferences: Codable, Equatable, Sendable {
     var clipboardLimit = 50
     var screenshotEnabled = true
     var screenshotAutoSave = false
-    var screenshotSaveDirectory = "~/Pictures/Screenshots"
+    var screenshotSaveDirectory = "~/Screenshots"
 
     init() {}
 
@@ -51,10 +51,13 @@ struct Preferences: Codable, Equatable, Sendable {
         clipboardLimit = try values.decodeIfPresent(Int.self, forKey: .clipboardLimit) ?? 50
         screenshotEnabled = try values.decodeIfPresent(Bool.self, forKey: .screenshotEnabled) ?? true
         screenshotAutoSave = try values.decodeIfPresent(Bool.self, forKey: .screenshotAutoSave) ?? false
-        screenshotSaveDirectory = try values.decodeIfPresent(String.self, forKey: .screenshotSaveDirectory) ?? "~/Pictures/Screenshots"
+        screenshotSaveDirectory = try values.decodeIfPresent(String.self, forKey: .screenshotSaveDirectory) ?? "~/Screenshots"
     }
 
     mutating func normalize() {
+        if screenshotSaveDirectory == "~/Pictures/Screenshots" {
+            screenshotSaveDirectory = "~/Screenshots"
+        }
         if ![15, 30, 60, 120].contains(cleaningDuration) { cleaningDuration = 30 }
         if ![25, 50, 100, 200].contains(clipboardLimit) { clipboardLimit = 50 }
         if ![0.5, 1, 2, 5].contains(interval) { interval = 0.5 }

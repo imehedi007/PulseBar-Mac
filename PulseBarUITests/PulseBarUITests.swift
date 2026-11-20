@@ -14,19 +14,11 @@ final class PulseBarUITests: XCTestCase {
 
         let pause = app.buttons["PauseResume"]
         XCTAssertTrue(pause.waitForExistence(timeout: 5))
-        let pressure = app.staticTexts["MemoryPressureStatus"]
-        XCTAssertTrue(pressure.waitForExistence(timeout: 5))
-        XCTAssertTrue(["Unknown", "Normal", "Warning", "Critical", "Disabled"].contains(pressure.value as? String ?? pressure.label), pressure.debugDescription)
-        XCTAssertTrue(app.staticTexts["OS Reported"].exists)
-        XCTAssertTrue(app.staticTexts["Estimated headroom"].exists)
-        let headroom = app.staticTexts["EstimatedMemoryHeadroom"]
-        XCTAssertTrue(headroom.waitForExistence(timeout: 5))
 
-        // Check metrics grid elements
+        // Check top metrics cards
         XCTAssertTrue(app.staticTexts["CPU"].exists)
         XCTAssertTrue(app.staticTexts["RAM"].exists)
-        XCTAssertTrue(app.staticTexts["Download"].exists)
-        XCTAssertTrue(app.staticTexts["Upload"].exists)
+        XCTAssertTrue(app.staticTexts["Network"].exists)
 
         // Pause / Resume cycle
         let original = pause.label

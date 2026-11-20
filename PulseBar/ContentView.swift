@@ -54,8 +54,10 @@ struct StatusPopover: View {
                     .transition(.opacity)
             }
         }
-        .padding(14)
-        .frame(width: 375, height: 470)
+        .padding(.horizontal, 14)
+        .padding(.top, 14)
+        .padding(.bottom, 14)
+        .frame(width: 375, height: 380)
         .onExitCommand {
             if showingSettings {
                 withAnimation(.easeInOut(duration: 0.16)) {
@@ -286,7 +288,7 @@ struct StatusPopover: View {
                 )
             }
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 8)
 
             // Bottom Action Bar
             HStack(spacing: 8) {
@@ -328,6 +330,7 @@ struct StatusPopover: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
+            .padding(.bottom, 2)
         }
     }
 
@@ -386,174 +389,119 @@ private struct MetricsView: View {
     let preferences: Preferences
 
     var body: some View {
-        VStack(spacing: 8) {
-            // Top Stat Cards (CPU, RAM, Network)
-            HStack(spacing: 8) {
-                // CPU Card
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "cpu")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("CPU")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(preferences.cpuEnabled ? MenuBarFormatter.percent(snapshot.cpu) : "Disabled")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(color(snapshot.cpu, thresholds: preferences.cpuThresholds))
-                        .monospacedDigit()
+        HStack(spacing: 8) {
+            // CPU Card
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 4) {
+                    Image(systemName: "cpu")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Text("CPU")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary.opacity(0.04))
-                )
+                Text(preferences.cpuEnabled ? MenuBarFormatter.percent(snapshot.cpu) : "Disabled")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(color(snapshot.cpu, thresholds: preferences.cpuThresholds))
+                    .monospacedDigit()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.primary.opacity(0.04))
+            )
+            .help("CPU Usage • Warning: \(Int(preferences.cpuThresholds.warning))% • Critical: \(Int(preferences.cpuThresholds.critical))%")
 
-                // RAM Card
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "memorychip")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("RAM")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
+            // RAM Card
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 4) {
+                    Image(systemName: "memorychip")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Text("RAM")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                HStack(alignment: .center, spacing: 5) {
                     Text(preferences.memoryEnabled ? MenuBarFormatter.percent(snapshot.memory?.percentage) : "Disabled")
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(preferences.memoryEnabled ? snapshot.memoryPressure : .unknown)))
                         .monospacedDigit()
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary.opacity(0.04))
-                )
 
-                // Network Card
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "network")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("Network")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.secondary)
+                    if preferences.memoryEnabled && (snapshot.memoryPressure == .warning || snapshot.memoryPressure == .critical) {
+                        Image(systemName: snapshot.memoryPressure == .critical ? "exclamationmark.octagon.fill" : "exclamationmark.triangle.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(snapshot.memoryPressure)))
+                            .help(snapshot.memoryPressure == .critical ? "Kernel Memory Pressure: Critical" : "Kernel Memory Pressure: Warning")
+                            .accessibilityIdentifier("MemoryPressureWarningSign")
                     }
-                    if preferences.networkEnabled {
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.down")
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundStyle(.blue)
-                                Text(MenuBarFormatter.speed(snapshot.network?.download))
-                                    .font(.system(size: 10, weight: .medium))
-                                    .monospacedDigit()
-                            }
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.up")
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundStyle(.purple)
-                                Text(MenuBarFormatter.speed(snapshot.network?.upload))
-                                    .font(.system(size: 10, weight: .medium))
-                                    .monospacedDigit()
-                            }
-                        }
-                    } else {
-                        Text("Disabled")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary.opacity(0.04))
-                )
-            }
-
-            // Detailed System & Memory Metrics Grid
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 5) {
-                GridRow {
-                    HStack(spacing: 4) {
-                        Text("OS Reported")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        InfoTooltip(tooltip: "macOS kernel reported virtual memory pressure level (Normal, Warning, or Critical).")
-                    }
-                    Text(preferences.memoryEnabled ? snapshot.memoryPressure.rawValue : "Disabled")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(Color(nsColor: MenuBarFormatter.memoryColor(preferences.memoryEnabled ? snapshot.memoryPressure : .unknown)))
-                        .accessibilityIdentifier("MemoryPressureStatus")
-
-                    HStack(spacing: 4) {
-                        Text("Used / Total")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(snapshot.memory.map {
-                        "\(MenuBarFormatter.gigabytes($0.used)) / \(MenuBarFormatter.gigabytes($0.total)) GB"
-                    } ?? "—")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-                }
-
-                GridRow {
-                    HStack(spacing: 4) {
-                        Text("Estimated headroom")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        InfoTooltip(tooltip: "Calculated available memory headroom: (total − memory used) / total.")
-                    }
-                    Text(preferences.memoryEnabled
-                         ? snapshot.memory?.estimatedHeadroomPercentage.map { "\(MenuBarFormatter.percent($0)) available" } ?? "Unavailable"
-                         : "Disabled")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("EstimatedMemoryHeadroom")
-
-                    HStack(spacing: 4) {
-                        Text("Available")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(snapshot.memory.map { "\(MenuBarFormatter.gigabytes($0.available)) GB" } ?? "—")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-
-                GridRow {
-                    HStack(spacing: 4) {
-                        Text("Download")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(preferences.networkEnabled ? MenuBarFormatter.speed(snapshot.network?.download) : "Disabled")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 4) {
-                        Text("Upload")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(preferences.networkEnabled ? MenuBarFormatter.speed(snapshot.network?.upload) : "Disabled")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
                 }
             }
-            .monospacedDigit()
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.primary.opacity(0.025))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
+                    .fill(Color.primary.opacity(0.04))
+            )
+            .help(ramTooltipText)
+
+            // Network Card
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 4) {
+                    Image(systemName: "network")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Text("Network")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                if preferences.networkEnabled {
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.down")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(.blue)
+                            Text(MenuBarFormatter.speed(snapshot.network?.download))
+                                .font(.system(size: 10, weight: .medium))
+                                .monospacedDigit()
+                        }
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(.purple)
+                            Text(MenuBarFormatter.speed(snapshot.network?.upload))
+                                .font(.system(size: 10, weight: .medium))
+                                .monospacedDigit()
+                        }
+                    }
+                } else {
+                    Text("Disabled")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.primary.opacity(0.04))
             )
         }
+    }
+
+    private var ramTooltipText: String {
+        guard preferences.memoryEnabled else { return "RAM monitoring disabled" }
+        var parts: [String] = []
+        if let mem = snapshot.memory {
+            parts.append("Used: \(MenuBarFormatter.gigabytes(mem.used)) / \(MenuBarFormatter.gigabytes(mem.total)) GB")
+            parts.append("Available: \(MenuBarFormatter.gigabytes(mem.available)) GB")
+            if let headroom = mem.estimatedHeadroomPercentage {
+                parts.append("Headroom: \(MenuBarFormatter.percent(headroom))")
+            }
+        }
+        parts.append("OS Pressure: \(snapshot.memoryPressure.rawValue)")
+        return parts.joined(separator: " • ")
     }
 
     private func color(_ value: Double?, thresholds: Thresholds) -> Color {
@@ -658,7 +606,7 @@ struct SettingsView: View {
                         .font(.caption)
                         .accessibilityIdentifier("ScreenshotEnabledToggle")
 
-                    Toggle("Auto-save screenshots to Pictures/Screenshots", isOn: binding(\.screenshotAutoSave))
+                    Toggle("Auto-save screenshots to ~/Screenshots", isOn: binding(\.screenshotAutoSave))
                         .font(.caption)
                         .disabled(!settings.preferences.screenshotEnabled)
                         .accessibilityIdentifier("ScreenshotAutoSaveToggle")
@@ -667,7 +615,9 @@ struct SettingsView: View {
                         Image(systemName: "folder")
                             .font(.system(size: 10))
                         Button("Open Screenshots Folder") {
-                            let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures/Screenshots")
+                            let rawPath = settings.preferences.screenshotSaveDirectory
+                            let expanded = NSString(string: rawPath).expandingTildeInPath
+                            let url = URL(fileURLWithPath: expanded)
                             try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
                             NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
                         }

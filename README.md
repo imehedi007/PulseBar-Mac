@@ -46,7 +46,7 @@ A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard h
   - **Color Palette & Styling**: Vibrant preset colors (Red, Orange, Yellow, Green, Blue, White, Black).
   - **Undo / Redo (`⌘Z` / `⌘⇧Z`)**: Full annotation history stack.
 - **Primary Workflow (`⌘C`)**: Copies the annotated region directly to the system clipboard at full native Retina resolution.
-- **Save to Disk (`⌘S`)**: Saves high-resolution PNGs to `~/Pictures/Screenshots/` with auto-save options.
+- **Save to Disk (`⌘S`)**: Saves high-resolution PNGs to `~/Screenshots/` with auto-save options.
 - **Retina & Display Scaling**: Native backing scale factor preservation for pixel-perfect captures.
 
 ### 4. Keyboard Cleaning Mode
