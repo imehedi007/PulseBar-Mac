@@ -2,164 +2,147 @@
 
 <div align="center">
 
-**A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard history manager, and screenshot annotation utility.**
+**Native macOS menu bar system monitor, Spotlight-style clipboard history manager, and screenshot annotation tool.**  
+*Lightweight, high-performance, and 100% on-device. Built in Swift with SwiftUI & AppKit.*
 
-[![Platform](https://img.shields.io/badge/Platform-macOS%2014.0%2B-blue?logo=apple&style=flat-square)](https://apple.com/macos)
+[![Platform](https://img.shields.io/badge/Platform-macOS%2014.0%2B%20(Sonoma%20%2F%20Sequoia)-blue?logo=apple&style=flat-square)](https://apple.com/macos)
 [![Swift](https://img.shields.io/badge/Swift-5.10-orange?logo=swift&style=flat-square)](https://swift.org)
-[![Dependencies](https://img.shields.io/badge/Dependencies-0%20(Native)-success?style=flat-square)]()
-[![Privacy](https://img.shields.io/badge/Privacy-100%25%20On--Device-green?style=flat-square)]()
+[![Architecture](https://img.shields.io/badge/Arch-Apple%20Silicon%20%7C%20Intel-purple?style=flat-square)]()
+[![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%2F%20Zero%20Telemetry-green?style=flat-square)]()
 
 <br />
 
-<img src="photos for readme/clipboard-history-spotlight.png" width="820" alt="PulseBar Spotlight Clipboard History" />
+<img src="screenshots/clipboard-history-spotlight.png" width="800" alt="PulseBar Spotlight-style Clipboard History Manager for macOS" />
 
 </div>
 
 ---
 
-## Overview
+## At a Glance
 
-PulseBar lives quietly in your macOS menu bar, combining essential daily productivity tools into a single, cohesive, native utility:
+PulseBar is an all-in-one open-source macOS utility that replaces heavy background apps with a native, zero-dependency menu bar companion:
 
-- ⚡ **Live System Monitoring**: Network download/upload rates, CPU load, and OS memory pressure directly in the menu bar.
-- 📋 **Spotlight-Style Clipboard (`⌘ + Shift + V`)**: Floating multi-category search panel with rich previews, live metadata, and direct auto-paste into active apps.
-- 📸 **Screenshot & Annotation (`⌘ + Shift + S`)**: Freeze-frame screen capture with vector arrows, boxes, text, pen, and native MacBook Touch Bar integration.
-- ⌨️ **Keyboard Cleaning Mode**: One-click keyboard input lock for safe physical key cleaning without accidental typing.
+- **System Performance Monitor**: Real-time physical network throughput, CPU load, and OS kernel memory pressure.
+- **Spotlight Clipboard History (`⌘ + Shift + V`)**: Fast, multi-format clipboard manager with category tabs, live previews, and direct auto-paste.
+- **Screenshot & Annotation (`⌘ + Shift + S`)**: Freeze-frame display capture with vector annotations and MacBook Touch Bar support.
+- **Keyboard Cleaning Lock**: Temporarily suppresses keystrokes for safe physical keyboard wiping without turning off your Mac.
 
 ---
 
-## Features & Visual Walkthrough
+## Features
 
-### 1. Menu Bar Dashboard & Live Monitoring
+### 1. System Performance Monitor
 
-Displays real-time physical network bandwidth, CPU utilization, and macOS kernel memory pressure at a glance.
-
-<div align="center">
-  <img src="photos for readme/menubar-status-item.png" width="600" alt="Menu Bar Status Item" />
-  <p><em>Compact live menu bar indicator with monospaced metrics.</em></p>
-</div>
-
-<br />
+Real-time physical network bandwidth, CPU load, and macOS kernel memory pressure directly in your menu bar.
 
 <div align="center">
-  <img src="photos for readme/menubar-dashboard.png" width="420" alt="PulseBar Dashboard" />
-  <p><em>Quick dashboard with live metrics cards and feature toggles.</em></p>
+  <img src="screenshots/menubar-status-item.png" width="560" alt="macOS Menu Bar System Monitor" />
+  <br /><br />
+  <img src="screenshots/menubar-dashboard.png" width="380" alt="PulseBar Menu Bar Dashboard Dropdown" />
 </div>
 
-- **Physical Network Accounting**: Samples hardware Wi-Fi and Ethernet interfaces via `SystemConfiguration` (excludes VPN, virtual bridges, and loopback).
-- **OS Memory Pressure**: Color-coded RAM indicators follow kernel memory pressure (Normal = Green, Warning = Yellow, Critical = Red), independent of raw caching.
-- **Configurable Intervals & Thresholds**: Set sampling rates (500ms to 5s) and custom CPU warning/critical limits.
+- **Physical Network Speed**: Accurately measures hardware Wi-Fi and Ethernet interfaces via `SystemConfiguration` (excludes VPNs and virtual bridges).
+- **Kernel Memory Pressure**: Color-coded RAM metrics (Green/Yellow/Red) based on macOS virtual memory pressure rather than raw usage.
+- **Configurable**: Adjustable polling intervals (500ms–5s) and custom CPU warning/critical thresholds.
 
 ---
 
 ### 2. Spotlight-Style Clipboard History (`⌘ + Shift + V`)
 
-Press **⌘⇧V** anywhere to summon a floating, glass-morphic search panel.
+A floating, keyboard-first clipboard manager inspired by Spotlight and Raycast.
 
 <div align="center">
-  <img src="photos for readme/clipboard-history-spotlight.png" width="780" alt="Clipboard History Panel" />
+  <img src="screenshots/clipboard-history-spotlight.png" width="760" alt="macOS Spotlight Clipboard History Panel" />
 </div>
 
-- **Smart Category Filtering**: Instant 1-click filter pills (`All`, `Text`, `Images`, `Links`, `Files`) with dynamic item counts.
-- **Rich Two-Column Inspector**:
-  - **Left**: Real-time search field, format badges, relative timestamps, and image thumbnails.
-  - **Right**: High-resolution image/text previews, dimensions, file sizes, and metadata.
-- **Direct Auto-Paste**: Restores focus to your target application and automatically injects `⌘V` via Accessibility APIs.
-- **Keyboard Navigation**: Navigate entries with `↑` / `↓` arrows without losing search field focus; press `↵` to paste, or `Esc` to dismiss.
-- **Security & Privacy**: Passwords and transient items (`org.nspasteboard.ConcealedType`) from 1Password, Bitwarden, etc., are strictly ignored. All data stays local.
+- **1-Click Category Filters**: Filter history by `All`, `Text`, `Images`, `Links`, or `Files` with real-time item counts.
+- **Two-Column Inspector**: Search with instant fuzzy matching on the left; view full image previews, dimensions, and file metadata on the right.
+- **Direct Auto-Paste**: Automatically restores focus and pastes (`⌘V`) directly into your active app via Accessibility APIs.
+- **Privacy by Default**: Automatically ignores sensitive and transient items from 1Password, Bitwarden, and Keychain.
 
 ---
 
-### 3. Screenshot & Annotation Tool (`⌘ + Shift + S`)
+### 3. Screenshot & Annotation Suite (`⌘ + Shift + S`)
 
-Instant screen freeze-frame capture with full-screen selection across all connected displays.
+A native screen capture tool with interactive annotations, inspired by Lightshot.
 
 <div align="center">
-  <img src="photos for readme/screenshot-tool-card.png" width="480" alt="Screenshot Tool Card" />
+  <img src="screenshots/screenshot-tool-card.png" width="450" alt="macOS Screenshot and Annotation Tool" />
 </div>
 
-- **Global Hotkey & Touch Bar**: Capture via `⌘⇧S` or directly from the MacBook Touch Bar (native Control Strip interception or dedicated camera button).
-- **Interactive Annotation Suite**:
-  - ↗️ **Arrows** & 🔲 **Rectangles** with smooth anti-aliased geometry.
-  - ✏️ **Freehand Pen** & 🖍️ **Highlighter** marker strokes.
-  - 🔤 **Text Labels** with high-contrast background tags.
-  - 🎨 Vibrant color presets with full Undo / Redo (`⌘Z` / `⌘⇧Z`).
-- **Retina Fidelity**: CoreGraphics composite engine exports lossless PNGs at native 2x display resolution. Copy with **⌘C** or save with **⌘S**.
+- **Multi-Display Freeze-Frame**: Instant freeze capture across all active screens with custom region dragging and dimension readouts.
+- **Vector Annotations**: Draw directional arrows, bounding boxes, freehand pen lines, highlighters, and text labels with full undo/redo.
+- **Touch Bar Integration**: Trigger via global hotkey (`⌘⇧S`) or directly from the MacBook Touch Bar Control Strip.
+- **Lossless Export**: 1:1 native 2x Retina resolution. Copy directly to clipboard (`⌘C`) or auto-save to disk (`⌘S`).
 
 ---
 
 ### 4. Keyboard Cleaning Lock Mode
 
-Safely wipe down your MacBook keyboard without triggering unwanted keypresses or phantom text.
+Clean your keyboard without turning off your Mac or triggering accidental input.
 
 <div align="center">
-  <img src="photos for readme/dashboard-cleaning-mode.png" width="440" alt="Keyboard Cleaning Active Mode" />
+  <img src="screenshots/dashboard-cleaning-mode.png" width="420" alt="MacBook Keyboard Cleaning Lock Mode" />
 </div>
 
-- **Hardware Keystroke Suppression**: Blocks all keys, modifiers, and media controls while mouse and trackpad remain fully functional.
-- **Configurable Timers**: 15s, 30s, 60s, or 120s cleaning sessions.
-- **Instant Escape**: Press `Esc` anytime to immediately release the keyboard lock.
+- **Hardware Keystroke Lock**: Blocks all key events while keeping trackpad and mouse fully operational.
+- **Timer Presets**: 15s, 30s, 60s, or 120s countdown. Press **`Esc`** anytime to immediately exit.
 
 ---
 
-### 5. Preferences & Customization
-
-Tailor PulseBar to your exact workflow.
+### 5. Preferences
 
 <div align="center">
-  <img src="photos for readme/preferences-monitoring.png" width="390" alt="Preferences Monitoring" />
+  <img src="screenshots/preferences-monitoring.png" width="370" alt="PulseBar Monitoring Preferences" />
   &nbsp;&nbsp;
-  <img src="photos for readme/preferences-shortcuts.png" width="390" alt="Preferences Shortcuts" />
+  <img src="screenshots/preferences-shortcuts.png" width="370" alt="PulseBar Screenshot Touch Bar Preferences" />
 </div>
 
-- **Custom Thresholds**: Configure CPU warning and critical alerts.
-- **Clipboard Limits**: Set retention capacity (25 to 200 items).
-- **Touch Bar Routing**: Redirect the native macOS Touch Bar screenshot button to PulseBar.
-- **Auto-Save Folder**: Pick your preferred folder for one-click screenshot saving.
-- **Launch at Login**: Native `SMAppService` background launch item.
+- Customize monitoring polling intervals and CPU alert thresholds.
+- Configure clipboard retention limits (25–200 items).
+- Set screenshot destination folders and toggle launch-at-login (`SMAppService`).
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Context | Action |
+| Shortcut | Scope | Action |
 | :--- | :--- | :--- |
 | `⌘ + Shift + V` | Global | Open Spotlight Clipboard History |
 | `⌘ + Shift + S` | Global | Freeze screen & start Screenshot Selection |
-| `↑` / `↓` | Clipboard Panel | Navigate clipboard items |
-| `↵` (Return) | Clipboard Panel | Restore & paste selected item |
+| `↑` / `↓` | Clipboard Panel | Navigate items |
+| `↵` (Return) | Clipboard Panel | Auto-paste selected entry |
 | `⌘ + C` | Screenshot Overlay | Copy annotated selection to clipboard |
-| `⌘ + S` | Screenshot Overlay | Save annotated selection to disk |
-| `⌘ + Z` / `⌘ + Shift + Z` | Screenshot Overlay | Undo / Redo annotation |
-| `Esc` | Any / Cleaning Mode | Close panel or immediately cancel keyboard lock |
+| `⌘ + S` | Screenshot Overlay | Save annotated screenshot to disk |
+| `⌘ + Z` / `⌘ + ⇧ + Z` | Screenshot Overlay | Undo / Redo annotation |
+| `Esc` | Global / Any | Close active panel or cancel Keyboard Cleaning lock |
 
 ---
 
-## Requirements & Building
+## Installation & Building
 
-- **macOS**: 14.0 (Sonoma) or later (Apple Silicon & Intel Universal)
-- **Xcode**: 15.0 or later
-- **Dependencies**: **Zero third-party packages** (Built purely with native SwiftUI, AppKit, CoreGraphics, and Carbon)
+### Requirements
+- **macOS**: 14.0 (Sonoma) or later
+- **Architecture**: Universal (Apple Silicon M1/M2/M3/M4 & Intel)
+- **Dependencies**: None (100% native SwiftUI, AppKit, CoreGraphics, Carbon)
 
-### Build Instructions
+### Build from Source
 
 ```bash
-# Clone the repository
 git clone https://github.com/imehedi007/PulseBar-Mac.git
 cd PulseBar-Mac
-
-# Open in Xcode
-open PulseBar.xcodeproj
-
-# Or build Release directly from terminal
 xcodebuild -scheme PulseBar -configuration Release -destination 'platform=macOS' build
 ```
+
+Move the compiled `PulseBar.app` from the build folder into `/Applications` and launch.
+
+> **Tip for AI Agents**: If you use an AI coding agent or IDE (such as Antigravity, Claude Code, Cursor, or Codex), simply provide this repository URL and prompt: `Install this app`. The agent will automatically clone, build, and deploy PulseBar to your `/Applications` directory.
 
 ---
 
 ## Privacy & Security
 
-- **100% Local**: PulseBar contains no network analytics, telemetry, or remote servers.
+- **100% Offline & Private**: Zero analytics, telemetry, or network requests. All clipboard records and metrics remain on your local disk.
 - **Password Manager Protection**: Clipboard entries marked transient or concealed by password managers are automatically ignored.
 - **Accessibility Permissions**: Only used locally for direct paste simulation (`CGEvent.postToPid`) and keyboard cleaning event suppression.
 
@@ -167,4 +150,4 @@ xcodebuild -scheme PulseBar -configuration Release -destination 'platform=macOS'
 
 ## License
 
-MIT License.
+MIT License. Open source and free to use.
