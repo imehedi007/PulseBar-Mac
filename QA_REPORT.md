@@ -42,7 +42,7 @@
 - **Deduplication**: Re-copied identical content updates timestamps and moves entries to the top without creating duplicate records.
 - **History Pruning**: Validated automatic boundary enforcement across all supported limits (25, 50, 100, 200 items) and orphaned image file deletion on disk.
 - **Persistence & Restoration**: Verified JSON persistence across application launches and accurate restoration back to `NSPasteboard.general` across all four content types.
-- **Search Filtering**: Tested real-time case-insensitive filtering across titles, URLs, file paths, and body text.
+- **Search & Category Filtering**: Tested real-time case-insensitive filtering across titles, URLs, file paths, and body text, alongside 1-click category filter pills (`All`, `Text`, `Images`, `Links`, `Files`) with dynamic item counts.
 - **Spotlight Navigation**: Verified clamped up/down arrow navigation, enter-to-paste, selection index adjustment upon item deletion, and target application validation.
 - **Global Hotkey Lifecycle**: Tested Carbon `⌘ + Shift + V` registration, conflict handling, and cleanup.
 

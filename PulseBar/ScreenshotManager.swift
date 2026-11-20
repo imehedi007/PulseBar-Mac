@@ -1,5 +1,4 @@
 import AppKit
-import Foundation
 import Observation
 
 @MainActor @Observable
@@ -151,11 +150,14 @@ final class ScreenshotManager {
         }
     }
 
-    nonisolated static func formatFilename(_ date: Date) -> String {
+    private nonisolated static let filenameFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
-        let timestamp = formatter.string(from: date)
-        return "Screenshot \(timestamp).png"
+        return formatter
+    }()
+
+    nonisolated static func formatFilename(_ date: Date) -> String {
+        "Screenshot \(filenameFormatter.string(from: date)).png"
     }
 
     func screenshotsDirectoryURL() -> URL {

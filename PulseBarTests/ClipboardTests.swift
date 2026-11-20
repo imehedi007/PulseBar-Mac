@@ -257,6 +257,19 @@ struct ClipboardTests {
         // Search non-existent
         controller.searchText = "Rust"
         #expect(controller.filteredItems().isEmpty)
+
+        // Category filter validation
+        controller.searchText = ""
+        controller.selectedFilter = .text
+        #expect(controller.filteredItems().count == 2)
+        #expect(controller.itemCount(for: .text) == 2)
+        #expect(controller.itemCount(for: .image) == 0)
+
+        controller.selectedFilter = .image
+        #expect(controller.filteredItems().isEmpty)
+
+        controller.selectedFilter = .all
+        #expect(controller.filteredItems().count == 2)
     }
 
     @Test func keyboardNavigationSelection() throws {

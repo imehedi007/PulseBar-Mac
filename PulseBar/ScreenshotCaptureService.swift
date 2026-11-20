@@ -1,6 +1,5 @@
 import AppKit
 import CoreGraphics
-import Darwin
 
 @MainActor
 final class ScreenshotCaptureService {

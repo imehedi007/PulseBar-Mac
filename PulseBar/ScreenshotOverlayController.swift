@@ -163,9 +163,7 @@ final class ScreenshotCanvasView: NSView, NSTextFieldDelegate {
     private var dragStart: CGPoint = .zero
     private var isSelecting = false
     private var isDrawing = false
-    private var isMovingSelection = false
     private var resizingHandle: HandleType?
-    private var dragOffset: CGPoint = .zero
     private var activeTextField: NSTextField?
 
     private var toolbarHosting: ScreenshotToolbarHostingView?
@@ -648,8 +646,6 @@ final class ScreenshotCanvasView: NSView, NSTextFieldDelegate {
     }
 
     override func mouseUp(with event: NSEvent) {
-        let pt = convert(event.locationInWindow, from: nil)
-
         if isSelecting {
             isSelecting = false
             if let sel = selectionRect, (sel.width < 10 || sel.height < 10) {
@@ -850,34 +846,27 @@ final class ScreenshotCanvasView: NSView, NSTextFieldDelegate {
     }
 
     // MARK: - Actions
-    func performCopy() {
+    private func compositeSelection() -> (image: NSImage, pngData: Data)? {
         let sel = selectionRect ?? bounds
-        guard sel.width > 5, sel.height > 5 else { return }
+        guard sel.width > 5, sel.height > 5 else { return nil }
         commitActiveText()
-
-        if let result = ScreenshotRenderer.composite(
+        return ScreenshotRenderer.composite(
             sourceImage: capturedImage,
             selectionRect: sel,
             desktopBounds: bounds,
             annotations: history.items,
             screenScale: scaleFactor
-        ) {
+        )
+    }
+
+    func performCopy() {
+        if let result = compositeSelection() {
             onCopy?(result.image, result.pngData)
         }
     }
 
     func performSave() {
-        let sel = selectionRect ?? bounds
-        guard sel.width > 5, sel.height > 5 else { return }
-        commitActiveText()
-
-        if let result = ScreenshotRenderer.composite(
-            sourceImage: capturedImage,
-            selectionRect: sel,
-            desktopBounds: bounds,
-            annotations: history.items,
-            screenScale: scaleFactor
-        ) {
+        if let result = compositeSelection() {
             onSave?(result.image, result.pngData)
         }
     }
@@ -1138,3 +1127,8 @@ private struct VisualEffectBackground: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
+
+// Note: VisualEffectView in ClipboardPanelController.swift supports additional
+// configurable properties (material, blendingMode, state, isEmphasized) needed
+// by the clipboard panel UI. This minimal variant is intentionally kept separate
+// to avoid coupling the screenshot toolbar to those parameters.

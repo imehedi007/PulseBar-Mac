@@ -1,5 +1,4 @@
 import AppKit
-import Foundation
 import Observation
 import UniformTypeIdentifiers
 
@@ -121,7 +120,7 @@ final class ClipboardManager {
         onOpenPanel?(targetApp)
     }
 
-    func startMonitoring() {
+    private func startMonitoring() {
         guard isEnabled else { return }
         stopMonitoring()
         lastChangeCount = pasteboard.changeCount
@@ -135,7 +134,7 @@ final class ClipboardManager {
         source.resume()
     }
 
-    func stopMonitoring() {
+    private func stopMonitoring() {
         timer?.cancel()
         timer = nil
     }
@@ -157,6 +156,8 @@ final class ClipboardManager {
         unregisterShortcut()
     }
 
+    /// Polls the system pasteboard for new content. Called by the internal timer
+    /// and exposed for unit testing.
     func pollPasteboard() {
         guard isEnabled else { return }
         let currentChangeCount = pasteboard.changeCount

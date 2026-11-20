@@ -53,7 +53,7 @@ final class ScreenshotTouchBarController: NSObject {
     }
 
     private func startNativeInterceptTimer() {
-        interceptTimer?.invalidate()
+        stopNativeInterceptTimer()
         interceptTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
             self?.checkForNativeScreenshotLaunch()
         }
@@ -67,25 +67,27 @@ final class ScreenshotTouchBarController: NSObject {
     private func checkForNativeScreenshotLaunch() {
         guard Date().timeIntervalSince(lastInterceptTime) > 1.0 else { return }
 
-        for app in NSWorkspace.shared.runningApplications {
-            if app.bundleIdentifier == "com.apple.screencaptureui" {
-                lastInterceptTime = Date()
+        // O(1) LaunchServices indexed lookup by bundle identifier instead of iterating all running apps.
+        // Note: screencaptureui has LSUIElement = 1, so NSWorkspace.didLaunchApplicationNotification
+        // does NOT post for it; direct LaunchServices lookup is required and consumes negligible CPU.
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.screencaptureui").first else {
+            return
+        }
 
-                // Instantly terminate native screencaptureui
-                kill(app.processIdentifier, SIGKILL)
+        lastInterceptTime = Date()
 
-                // Terminate parent screencapture process
-                let pkill = Process()
-                pkill.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
-                pkill.arguments = ["-9", "-x", "screencapture"]
-                try? pkill.run()
+        // Instantly terminate native screencaptureui
+        kill(app.processIdentifier, SIGKILL)
 
-                // Launch PulseBar screenshot capture
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                    self?.onTrigger?()
-                }
-                break
-            }
+        // Terminate parent screencapture process
+        let pkill = Process()
+        pkill.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+        pkill.arguments = ["-9", "-x", "screencapture"]
+        try? pkill.run()
+
+        // Launch PulseBar screenshot capture
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            self?.onTrigger?()
         }
     }
 
@@ -130,5 +132,9 @@ final class ScreenshotTouchBarController: NSObject {
         setControlStripPresence(false)
         setNativeInterception(false)
         touchBarItem = nil
+    }
+
+    deinit {
+        interceptTimer?.invalidate()
     }
 }

@@ -20,6 +20,7 @@ A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard h
 
 ### 2. Native Clipboard History (Spotlight-Style)
 - **Global Hotkey (`⌘ + Shift + V`)**: Instantly invokes a floating Spotlight-style panel from any application.
+- **Top Header Bar & Category Filter Tabs**: Real-time search field with 1-click category filter pills (`All`, `Text`, `Images`, `Links`, `Files`) with dynamic item counts, keyboard shortcuts, and single-click history clear.
 - **Two-Column Inspector**:
   - **Left Column**: Search bar, relative timestamps, format badges, and 115 px image thumbnails.
   - **Right Column**: Detail inspector with full-resolution previews, metadata (dimensions, file size, character/line counts), and quick action buttons.

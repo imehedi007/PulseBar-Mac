@@ -1,5 +1,4 @@
 import Foundation
-import Darwin
 import SystemConfiguration
 
 struct CPUTicks: Equatable, Sendable {
