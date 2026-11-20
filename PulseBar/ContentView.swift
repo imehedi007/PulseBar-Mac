@@ -240,7 +240,9 @@ struct StatusPopover: View {
 
                     HStack {
                         Text(screenshot.isEnabled
-                             ? "⌘⇧S to capture • Drag region • ⌘C to copy"
+                             ? (screenshot.touchBarController.isTouchBarSupported && (settings.preferences.screenshotTouchBarEnabled || settings.preferences.screenshotNativeTouchBarInterceptEnabled)
+                                ? "⌘⇧S or Touch Bar to capture • ⌘C to copy"
+                                : "⌘⇧S to capture • Drag region • ⌘C to copy")
                              : "Off — screenshot shortcut disabled.")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
@@ -375,7 +377,15 @@ struct StatusPopover: View {
             Divider()
 
             ScrollView(.vertical, showsIndicators: true) {
-                SettingsView(settings: settings)
+                SettingsView(
+                    settings: settings,
+                    onUpdateScreenshotTouchBar: { enabled in
+                        screenshot.setTouchBarEnabled(enabled)
+                    },
+                    onUpdateNativeTouchBarIntercept: { enabled in
+                        screenshot.setNativeTouchBarInterceptEnabled(enabled)
+                    }
+                )
                     .padding(.vertical, 2)
                     .padding(.trailing, 4)
             }
@@ -512,6 +522,8 @@ private struct MetricsView: View {
 // MARK: - Organized Settings View
 struct SettingsView: View {
     let settings: SettingsManager
+    var onUpdateScreenshotTouchBar: ((Bool) -> Void)? = nil
+    var onUpdateNativeTouchBarIntercept: ((Bool) -> Void)? = nil
 
     private func binding<T>(_ keyPath: WritableKeyPath<Preferences, T>) -> Binding<T> {
         Binding(get: { settings.preferences[keyPath: keyPath] },
@@ -605,6 +617,34 @@ struct SettingsView: View {
                     Toggle("Screenshot & Annotation Tool (⌘⇧S)", isOn: binding(\.screenshotEnabled))
                         .font(.caption)
                         .accessibilityIdentifier("ScreenshotEnabledToggle")
+
+                    Toggle("Redirect Touch Bar Screenshot button to PulseBar", isOn: Binding(
+                        get: { settings.preferences.screenshotNativeTouchBarInterceptEnabled },
+                        set: { val in
+                            if let onUpdateNativeTouchBarIntercept {
+                                onUpdateNativeTouchBarIntercept(val)
+                            } else {
+                                settings.update { $0.screenshotNativeTouchBarInterceptEnabled = val }
+                            }
+                        }
+                    ))
+                    .font(.caption)
+                    .disabled(!settings.preferences.screenshotEnabled)
+                    .accessibilityIdentifier("ScreenshotNativeTouchBarInterceptToggle")
+
+                    Toggle("Show extra camera button in Touch Bar Control Strip", isOn: Binding(
+                        get: { settings.preferences.screenshotTouchBarEnabled },
+                        set: { val in
+                            if let onUpdateScreenshotTouchBar {
+                                onUpdateScreenshotTouchBar(val)
+                            } else {
+                                settings.update { $0.screenshotTouchBarEnabled = val }
+                            }
+                        }
+                    ))
+                    .font(.caption)
+                    .disabled(!settings.preferences.screenshotEnabled)
+                    .accessibilityIdentifier("ScreenshotTouchBarToggle")
 
                     Toggle("Auto-save screenshots to ~/Screenshots", isOn: binding(\.screenshotAutoSave))
                         .font(.caption)

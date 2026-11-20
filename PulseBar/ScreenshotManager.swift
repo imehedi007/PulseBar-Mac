@@ -20,11 +20,18 @@ final class ScreenshotManager {
         hotKey.conflictError
     }
 
+    let touchBarController: ScreenshotTouchBarController
+
     init(settings: SettingsManager) {
         self.settings = settings
         self.hotKey = ScreenshotHotKey()
+        self.touchBarController = ScreenshotTouchBarController()
         
         hotKey.onTrigger = { [weak self] in
+            self?.startCapture()
+        }
+
+        touchBarController.onTrigger = { [weak self] in
             self?.startCapture()
         }
 
@@ -46,6 +53,12 @@ final class ScreenshotManager {
 
         if settings.preferences.screenshotEnabled {
             hotKey.register()
+            if settings.preferences.screenshotTouchBarEnabled {
+                touchBarController.setControlStripPresence(true)
+            }
+            if settings.preferences.screenshotNativeTouchBarInterceptEnabled {
+                touchBarController.setNativeInterception(true)
+            }
         }
     }
 
@@ -53,11 +66,25 @@ final class ScreenshotManager {
         settings.update { $0.screenshotEnabled = enabled }
         if enabled {
             hotKey.register()
+            touchBarController.setControlStripPresence(settings.preferences.screenshotTouchBarEnabled)
+            touchBarController.setNativeInterception(settings.preferences.screenshotNativeTouchBarInterceptEnabled)
         } else {
             hotKey.unregister()
+            touchBarController.setControlStripPresence(false)
+            touchBarController.setNativeInterception(false)
             overlay.close()
             isCapturing = false
         }
+    }
+
+    func setTouchBarEnabled(_ enabled: Bool) {
+        settings.update { $0.screenshotTouchBarEnabled = enabled }
+        touchBarController.setControlStripPresence(isEnabled && enabled)
+    }
+
+    func setNativeTouchBarInterceptEnabled(_ enabled: Bool) {
+        settings.update { $0.screenshotNativeTouchBarInterceptEnabled = enabled }
+        touchBarController.setNativeInterception(isEnabled && enabled)
     }
 
     func startCapture() {
@@ -145,6 +172,7 @@ final class ScreenshotManager {
 
     func shutdown() {
         hotKey.unregister()
+        touchBarController.tearDown()
         overlay.close()
         isCapturing = false
     }

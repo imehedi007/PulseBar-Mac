@@ -9,7 +9,7 @@
 | **Build Configurations** | Debug & Release (0 errors, 0 compiler warnings) |
 | **Hardened Runtime** | Enabled |
 | **App Sandbox** | Disabled (`ENABLE_APP_SANDBOX = NO` for system metric reads & Accessibility event tap) |
-| **Automated Test Results** | **59 passed, 0 failed** (56 Swift Testing unit tests + 3 XCUITest UI tests across 5 suites) |
+| **Automated Test Results** | **60 passed, 0 failed** (57 Swift Testing unit tests + 3 XCUITest UI tests across 5 suites) |
 | **Static Analysis / Issues** | 0 warnings, 0 static analysis issues |
 
 ---
@@ -22,8 +22,9 @@
 - **Grouped Settings & Controls**: Verified collapsible/scrollable settings groups (Monitoring, Tools & History, General), checkBoxes, pickers, CPU threshold steppers, and defaults restoration.
 - **Interactive Tool Toggles**: Verified Keyboard Cleaning lock activation, Clipboard History toggling, and Spotlight panel invocation (`⌘⇧V`).
 
-### 2. Screenshot & Annotation Tool (`ScreenshotTests` — 9 Tests)
+### 2. Screenshot & Annotation Tool (`ScreenshotTests` — 10 Tests)
 - **Global Hotkey Lifecycle**: Tested Carbon `⌘ + Shift + S` registration, conflict detection, unregistration, and clean deallocation.
+- **Touch Bar Control Strip & Native Button Interception**: Implemented native `DFRFoundation` Control Strip integration, seamless redirection of macOS's native Touch Bar screenshot button to PulseBar (allowing users to position it anywhere in Control Strip settings including the far right edge), dynamic hardware availability detection, lifecycle presence toggling, and action firing.
 - **Visual Capture Mode Feedback & Reticle**: Custom high-contrast 28x28 precision reticle cursor with coordinate guide readout (`X: Y:`) and floating HUD instruction banner (`📸 Screenshot Mode • Click and drag to select area • Esc to cancel`).
 - **Liquid Glass Floating Toolbar & Circular Handles**: Elevated selection frame with anti-aliased circular pill resize handles, frosted glass toolbar with direct 1-click color palette, hero `⌘C` Copy button, pointing hand (`.pointingHand`) system cursor hover feedback on all options, and default disk save path configured to `~/Screenshots`.
 - **Keyboard Shortcuts & Dismissal**: Validated `Esc` cancellation, `⌘C` copy-to-clipboard, and tool hotkey switching (`a`, `p`, `r`, `h`, `t`).

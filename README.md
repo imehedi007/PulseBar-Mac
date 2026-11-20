@@ -35,7 +35,7 @@ A lightweight, native macOS menu-bar system monitor, Spotlight-style clipboard h
 - **Privacy by Design**: All history is stored locally in `~/Library/Application Support/PulseBar/Clipboard/`. Automatically ignores password managers and transient data (`org.nspasteboard.TransientType`, `org.nspasteboard.ConcealedType`).
 
 ### 3. Screenshot & Annotation Tool (Lightshot-Inspired)
-- **Global Hotkey (`⌘ + Shift + S`)**: Instant screen freeze-frame capture across all displays with full-screen selection.
+- **Global Hotkey (`⌘ + Shift + S`) & Touch Bar Integration**: Instant screen freeze-frame capture across all displays with full-screen selection. Supports both the global keyboard shortcut and MacBook Touch Bar (integrates seamlessly with the native Control Strip screenshot button via interception, or as a dedicated custom Control Strip camera button).
 - **Custom Region Dragging**: Click and drag to select any desktop area with dimension readout (`width × height px`) and 8-point resize handles.
 - **Annotation Suite**:
   - **Arrow**: Sharp directional arrows with proportional arrowheads.

@@ -13,17 +13,23 @@ struct ScreenshotTests {
         #expect(settings.preferences.screenshotEnabled == true)
         #expect(settings.preferences.screenshotAutoSave == false)
         #expect(settings.preferences.screenshotSaveDirectory == "~/Screenshots")
+        #expect(settings.preferences.screenshotTouchBarEnabled == false)
+        #expect(settings.preferences.screenshotNativeTouchBarInterceptEnabled == true)
 
         settings.update {
             $0.screenshotEnabled = false
             $0.screenshotAutoSave = true
             $0.screenshotSaveDirectory = "~/Downloads/Captures"
+            $0.screenshotTouchBarEnabled = true
+            $0.screenshotNativeTouchBarInterceptEnabled = false
         }
 
         let restored = SettingsManager(defaults: defaults)
         #expect(restored.preferences.screenshotEnabled == false)
         #expect(restored.preferences.screenshotAutoSave == true)
         #expect(restored.preferences.screenshotSaveDirectory == "~/Downloads/Captures")
+        #expect(restored.preferences.screenshotTouchBarEnabled == true)
+        #expect(restored.preferences.screenshotNativeTouchBarInterceptEnabled == false)
     }
 
     @MainActor @Test func screenshotHotKeyLifecycle() {
@@ -37,6 +43,34 @@ struct ScreenshotTests {
         }
         hotKey.unregister()
         #expect(!hotKey.isRegistered)
+    }
+
+    @MainActor @Test func screenshotTouchBarControllerLifecycle() {
+        let touchBar = ScreenshotTouchBarController()
+        #expect(touchBar.isControlStripPresent == false)
+
+        var triggered = false
+        touchBar.onTrigger = {
+            triggered = true
+        }
+
+        touchBar.setControlStripPresence(true)
+        if touchBar.isTouchBarSupported {
+            #expect(touchBar.isControlStripPresent == true)
+        }
+
+        touchBar.setControlStripPresence(false)
+        #expect(touchBar.isControlStripPresent == false)
+
+        touchBar.setNativeInterception(true)
+        #expect(touchBar.isInterceptingNative == true)
+        touchBar.setNativeInterception(false)
+        #expect(touchBar.isInterceptingNative == false)
+
+        touchBar.tearDown()
+        #expect(touchBar.isControlStripPresent == false)
+        #expect(touchBar.isInterceptingNative == false)
+        #expect(!triggered)
     }
 
     @Test func annotationToolsAndColors() {

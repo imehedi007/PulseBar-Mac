@@ -27,6 +27,8 @@ struct Preferences: Codable, Equatable, Sendable {
     var screenshotEnabled = true
     var screenshotAutoSave = false
     var screenshotSaveDirectory = "~/Screenshots"
+    var screenshotTouchBarEnabled = false
+    var screenshotNativeTouchBarInterceptEnabled = true
 
     init() {}
 
@@ -34,7 +36,7 @@ struct Preferences: Codable, Equatable, Sendable {
         case cpuEnabled, memoryEnabled, networkEnabled, interval
         case cpuThresholds, memoryThresholds, autoStart, cleaningDuration
         case clipboardHistoryEnabled, clipboardLimit
-        case screenshotEnabled, screenshotAutoSave, screenshotSaveDirectory
+        case screenshotEnabled, screenshotAutoSave, screenshotSaveDirectory, screenshotTouchBarEnabled, screenshotNativeTouchBarInterceptEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -52,6 +54,8 @@ struct Preferences: Codable, Equatable, Sendable {
         screenshotEnabled = try values.decodeIfPresent(Bool.self, forKey: .screenshotEnabled) ?? true
         screenshotAutoSave = try values.decodeIfPresent(Bool.self, forKey: .screenshotAutoSave) ?? false
         screenshotSaveDirectory = try values.decodeIfPresent(String.self, forKey: .screenshotSaveDirectory) ?? "~/Screenshots"
+        screenshotTouchBarEnabled = try values.decodeIfPresent(Bool.self, forKey: .screenshotTouchBarEnabled) ?? false
+        screenshotNativeTouchBarInterceptEnabled = try values.decodeIfPresent(Bool.self, forKey: .screenshotNativeTouchBarInterceptEnabled) ?? true
     }
 
     mutating func normalize() {
